@@ -656,6 +656,61 @@ Collection Required 🚛
 
 
 <div id="map"></div>
+<!-- Add New Waste Bin -->
+
+<h2>Add New Waste Bin</h2>
+
+<form action="/add-bin" method="post">
+
+    <input 
+    type="text" 
+    name="bin_code" 
+    placeholder="Bin ID"
+    required>
+
+
+    <input 
+    type="text" 
+    name="location" 
+    placeholder="Location"
+    required>
+
+
+    <input 
+    type="text" 
+    name="latitude" 
+    placeholder="Latitude"
+    required>
+
+
+    <input 
+    type="text" 
+    name="longitude" 
+    placeholder="Longitude"
+    required>
+
+
+    <input 
+    type="number" 
+    name="fill_level" 
+    placeholder="Fill Level (%)"
+    required>
+
+
+    <input 
+    type="text" 
+    name="status" 
+    placeholder="Status"
+    required>
+
+
+    <button type="submit">
+        Add Bin
+    </button>
+
+</form>
+
+<hr>
 <!-- ===============================
      Customer Complaint Form
      =============================== -->

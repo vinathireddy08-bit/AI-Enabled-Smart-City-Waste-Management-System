@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request,Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -204,34 +204,22 @@ def api_bins(
 @app.get("/dashboard")
 def dashboard(
     request: Request,
-
     db: Session = Depends(get_db)
-
 ):
-
 
     bins = db.query(WasteBin).all()
 
-
     complaints = db.query(Complaint).all()
 
-
     return templates.TemplateResponse(
-
         "dashboard.html",
-
         {
-
-            "request":request,
-
-            "bins":bins,
-
-            "complaints":complaints
-
+            "request": request,
+            "bins": bins,
+            "complaints": complaints
         }
-
     )
-
+    
 
 
 
@@ -492,3 +480,47 @@ def update_complaint(
 
 
     return complaint
+# ===============================
+# Add New Waste Bin
+# ===============================
+
+class WasteBinCreate(BaseModel):
+
+    bin_code: str
+    location: str
+    latitude: float
+    longitude: float
+    fill_level: int
+    status: str
+
+
+
+@app.post("/add-bin")
+def add_bin(
+    bin_code: str = Form(...),
+    location: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    fill_level: int = Form(...),
+    status: str = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    new_bin = WasteBin(
+
+        bin_code=bin_code,
+        location=location,
+        latitude=latitude,
+        longitude=longitude,
+        fill_level=fill_level,
+        status=status
+
+    )
+
+    db.add(new_bin)
+    db.commit()
+    db.refresh(new_bin)
+
+    return {
+        "message": "Waste Bin Added Successfully"
+    }

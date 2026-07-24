@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+AI Smart City Waste Management Dashboard
+</title>
+
+
+<link rel="stylesheet" href="/static/style.css">
+
+
+<!-- Chart.js -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- Leaflet Map -->
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="header">
+
+<h1>
+♻️ AI-Enabled Smart City Waste Management System
+</h1>
+
+</div>
+<!-- ===============================
+     Complaint List
+     =============================== -->
+
+<h2>
+📋 Customer Complaints
+</h2>
+
+
+<table class="complaint-table">
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>Name</th>
+
+<th>Location</th>
+
+<th>Type</th>
+
+<th>Description</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+
+{% for complaint in complaints %}
+
+
+<tr>
+
+<td>
+{{complaint.id}}
+</td>
+
+
+<td>
+{{complaint.name}}
+</td>
+
+
+<td>
+{{complaint.location}}
+</td>
+
+
+<td>
+{{complaint.complaint_type}}
+</td>
+
+
+<td>
+{{complaint.description}}
+</td>
+
+
+<td>
+{{complaint.status}}
+</td>
+
+
+</tr>
+
+
+{% endfor %}
+
+
+</tbody>
+
+
+</table>
+
+
+
+
+
+
+
+<!-- ===============================
+     Dashboard Cards
+     =============================== -->
+
+
+<div class="cards">
+
+
+
+<div class="card total">
+
+
+<h3>
+Total Bins
+</h3>
+
+
+<p>
+
+{{bins|length}}
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="card full">
+
+
+<h3>
+Full Bins
+</h3>
+
+
+<p>
+
+
+{% set full_count = 0 %}
+
+
+
+{% for bin in bins %}
+
+
+
+{% if bin.fill_level > 80 %}
+
+
+{% set full_count = full_count + 1 %}
+
+
+{% endif %}
+
+
+
+{% endfor %}
+
+
+
+{{full_count}}
+
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="card average">
+
+
+<h3>
+Average Fill
+</h3>
+
+
+<p>
+
+
+{% set total = 0 %}
+
+
+
+{% for bin in bins %}
+
+
+{% set total = total + bin.fill_level %}
+
+
+{% endfor %}
+
+
+
+
+{% if bins|length > 0 %}
+
+
+{{(total / bins|length)|round}}%
+
+
+{% else %}
+
+
+0%
+
+
+{% endif %}
+
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     Search
+     =============================== -->
+
+
+<h2>
+🔍 Search Waste Bin
+</h2>
+
+
+
+<input
+
+type="text"
+
+id="searchBox"
+
+placeholder="Search Bin or Location..."
+
+onkeyup="searchTable()"
+
+/>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     Waste Bin Table
+     =============================== -->
+
+
+<h2>
+🗑 Waste Bin Details
+</h2>
+
+
+
+
+<table id="binTable">
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+ID
+</th>
+
+
+<th>
+Location
+</th>
+
+
+<th>
+Fill Level
+</th>
+
+
+<th>
+Status
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+
+{% for bin in bins %}
+
+
+
+<tr>
+
+
+<td>
+{{bin.id}}
+</td>
+
+
+
+<td>
+{{bin.location}}
+</td>
+
+
+
+<td>
+{{bin.fill_level}}%
+</td>
+
+
+
+
+<td>
+
+
+{% if bin.status == "FULL" %}
+
+
+🔴 FULL
+
+
+
+{% elif bin.status == "MEDIUM" %}
+
+
+🟠 MEDIUM
+
+
+
+{% else %}
+
+
+🟢 EMPTY
+
+
+
+{% endif %}
+
+
+
+</td>
+
+
+
+</tr>
+
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+
+</table>
+<!-- ===============================
+     Waste Status Pie Chart
+     =============================== -->
+
+
+<h2>
+📊 Waste Status Chart
+</h2>
+
+
+<div class="chart-container">
+
+
+<canvas id="wasteChart"></canvas>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     AI Prediction Section
+     =============================== -->
+
+
+<h2>
+🤖 AI Waste Prediction
+</h2>
+
+
+
+<div class="prediction-container">
+
+
+
+{% for bin in bins %}
+
+
+
+<div class="prediction-card">
+
+
+
+<h3>
+{{bin.bin_code}}
+</h3>
+
+<p>
+📍 {{bin.location}}
+</p>
+
+
+
+<p>
+
+📍 Location:
+
+{{bin.location}}
+
+</p>
+
+
+
+
+
+<p>
+
+Current Fill:
+
+<b>
+{{bin.fill_level}}%
+</b>
+
+
+</p>
+
+
+
+
+
+
+<p>
+
+AI Predicted Fill:
+
+<b id="prediction{{bin.id}}">
+
+Loading...
+
+</b>
+
+
+</p>
+
+
+
+
+
+
+<p>
+
+AI Decision:
+
+<b id="status{{bin.id}}">
+
+Checking...
+
+</b>
+
+
+</p>
+
+
+
+
+</div>
+
+
+
+{% endfor %}
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     Alert Panel
+     =============================== -->
+
+
+<h2>
+🚨 Alert Panel
+</h2>
+
+
+
+
+<div class="alert-box">
+
+
+
+{% for bin in bins %}
+
+
+
+
+{% if bin.fill_level > 80 %}
+
+
+
+<div class="alert">
+
+
+⚠️ Bin ID:
+
+{{bin.id}}
+
+
+<br>
+
+
+📍 Location:
+
+{{bin.location}}
+
+
+<br>
+
+
+Fill Level:
+
+{{bin.fill_level}}%
+
+
+<br>
+
+
+Status:
+
+Collection Required 🚛
+
+
+</div>
+
+
+
+
+{% endif %}
+
+
+
+
+{% endfor %}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     Waste Map
+     =============================== -->
+
+
+<h2>
+🗺 Waste Bin Map
+</h2>
+
+
+
+<div id="map"></div>
+<!-- ===============================
+     Customer Complaint Form
+     =============================== -->
+
+
+<h2>
+📢 Report Waste Issue
+</h2>
+
+
+
+<div class="complaint-container">
+
+
+<form id="complaintForm">
+
+
+
+<label>
+Name
+</label>
+
+
+<input
+
+type="text"
+
+name="name"
+
+placeholder="Enter your name"
+
+required
+
+>
+
+
+
+
+
+
+<label>
+Select Bin
+</label>
+
+<select name="location" required>
+
+{% for bin in bins %}
+
+<option value="{{bin.bin_code}}">
+{{bin.bin_code}} - {{bin.location}}
+</option>
+
+{% endfor %}
+
+</select>
+>
+
+
+
+
+
+
+<label>
+Complaint Type
+</label>
+
+
+
+<select name="complaint_type">
+
+
+<option>
+Overflowing Bin
+</option>
+
+
+<option>
+Waste Not Collected
+</option>
+
+
+<option>
+Bad Smell
+</option>
+
+
+<option>
+Damaged Bin
+</option>
+
+
+<option>
+Other
+</option>
+
+
+</select>
+
+
+
+
+
+
+
+
+<label>
+Description
+</label>
+
+
+
+<textarea
+
+name="description"
+
+placeholder="Describe the issue"
+
+required>
+
+</textarea>
+
+
+
+
+
+
+
+<button type="submit">
+
+Submit Complaint
+
+</button>
+
+
+
+</form>
+
+
+</div>
+
+
+
+
+
+
+
+
+<script>
+
+
+
+// ===============================
+// Search Function
+// ===============================
+
+
+function searchTable(){
+
+
+let input =
+
+document.getElementById("searchBox")
+.value.toLowerCase();
+
+
+
+
+let rows =
+
+document.querySelectorAll("#binTable tbody tr");
+
+
+
+
+
+rows.forEach(function(row){
+
+
+let text = row.innerText.toLowerCase();
+
+
+
+row.style.display =
+
+text.includes(input)
+
+?
+
+""
+
+:
+
+"none";
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// AI Prediction
+// ===============================
+
+
+{% for bin in bins %}
+
+
+
+fetch("/ai/predict/{{bin.id}}")
+
+
+
+.then(response => response.json())
+
+
+
+.then(data => {
+
+
+
+document.getElementById(
+
+"prediction{{bin.id}}"
+
+).innerHTML =
+
+
+data.predicted_fill + "%";
+
+
+
+
+
+document.getElementById(
+
+"status{{bin.id}}"
+
+).innerHTML =
+
+
+data.decision;
+
+
+
+
+});
+
+
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+// ===============================
+// Complaint Submit
+// ===============================
+
+
+document.getElementById("complaintForm")
+
+.addEventListener("submit", function(e){
+
+
+
+e.preventDefault();
+
+
+
+
+
+let data = {
+
+
+
+name:
+
+document.getElementsByName("name")[0].value,
+
+
+
+
+location:
+
+document.getElementsByName("location")[0].value,
+
+
+
+
+complaint_type:
+
+document.getElementsByName("complaint_type")[0].value,
+
+
+
+
+description:
+
+document.getElementsByName("description")[0].value
+
+
+
+};
+
+
+
+
+
+
+fetch("/complaints",
+
+{
+
+
+method:"POST",
+
+
+
+headers:{
+
+
+"Content-Type":"application/json"
+
+
+},
+
+
+
+body:JSON.stringify(data)
+
+
+
+})
+
+
+
+.then(response => response.json())
+
+
+
+.then(result => {
+
+
+
+alert("Complaint Submitted Successfully");
+
+
+
+document.getElementById("complaintForm").reset();
+
+
+
+});
+
+
+
+});
+// ===============================
+// Pie Chart
+// ===============================
+
+
+
+let full = 0;
+
+let medium = 0;
+
+let empty = 0;
+
+
+
+
+
+{% for bin in bins %}
+
+
+
+
+{% if bin.fill_level > 80 %}
+
+
+full++;
+
+
+
+{% elif bin.fill_level > 40 %}
+
+
+medium++;
+
+
+
+{% else %}
+
+
+empty++;
+
+
+
+{% endif %}
+
+
+
+
+{% endfor %}
+
+
+
+
+
+new Chart(
+
+document.getElementById("wasteChart"),
+
+{
+
+
+type:"pie",
+
+
+
+data:{
+
+
+labels:[
+
+"Full",
+
+"Medium",
+
+"Empty"
+
+],
+
+
+
+datasets:[{
+
+
+data:[
+
+full,
+
+medium,
+
+empty
+
+],
+
+
+
+backgroundColor:[
+
+"#E53935",
+
+"#F9A825",
+
+"#43A047"
+
+]
+
+
+}]
+
+
+},
+
+
+
+options:{
+
+
+responsive:true,
+
+
+maintainAspectRatio:false,
+
+
+plugins:{
+
+
+legend:{
+
+
+position:"bottom"
+
+
+}
+
+
+}
+
+
+}
+
+
+
+}
+
+);
+
+
+
+
+
+
+
+
+
+// ===============================
+// Leaflet Map
+// ===============================
+
+
+let map = L.map('map').setView(
+
+[17.3850,78.4867],
+
+13
+
+);
+
+
+
+
+
+L.tileLayer(
+
+'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+{
+
+attribution:'© OpenStreetMap'
+
+}
+
+).addTo(map);
+
+
+
+
+
+
+
+
+
+// ===============================
+// Map Markers
+// ===============================
+
+
+
+{% for bin in bins %}
+
+
+
+
+{% if bin.fill_level > 80 %}
+
+
+
+let color{{bin.id}} = "red";
+
+
+
+{% elif bin.fill_level > 40 %}
+
+
+
+let color{{bin.id}} = "orange";
+
+
+
+{% else %}
+
+
+
+let color{{bin.id}} = "green";
+
+
+
+{% endif %}
+
+
+
+
+
+
+L.circleMarker(
+[
+{{bin.latitude}},
+{{bin.longitude}}
+],
+
+
+{
+
+
+radius:10,
+
+
+color:color{{bin.id}},
+
+
+fillColor:color{{bin.id}},
+
+
+fillOpacity:0.8
+
+
+}
+
+)
+
+
+
+.addTo(map)
+
+
+
+.bindPopup(
+`
+
+<b>Bin Code:</b> {{bin.bin_code}}
+
+<br>
+
+<b>Location:</b> {{bin.location}}
+
+<br>
+
+<b>Latitude:</b> {{bin.latitude}}
+
+<br>
+
+<b>Longitude:</b> {{bin.longitude}}
+
+<br>
+
+<b>Fill Level:</b> {{bin.fill_level}}%
+
+<br>
+
+<b>Status:</b> {{bin.status}}
+
+`
+);
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+// ===============================
+// Map Legend
+// ===============================
+
+
+
+let legend = L.control({
+
+position:"bottomright"
+
+});
+
+
+
+
+
+legend.onAdd=function(map){
+
+
+
+let div = L.DomUtil.create(
+
+"div",
+
+"info legend"
+
+);
+
+
+
+
+div.innerHTML =
+
+
+"<b>Waste Status</b><br>" +
+
+
+"<span style='color:red'>⬤</span> Full Bin (>80%)<br>" +
+
+
+"<span style='color:orange'>⬤</span> Medium Bin (40-80%)<br>" +
+
+
+"<span style='color:green'>⬤</span> Empty Bin (<40%)";
+
+
+
+
+return div;
+
+
+
+};
+
+
+
+
+legend.addTo(map);
+
+
+
+
+
+</script>
+
+
+
+
+</body>
+
+
+</html>uvicorn main:app --reload

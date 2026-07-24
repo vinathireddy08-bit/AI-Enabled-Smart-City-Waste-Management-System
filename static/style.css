@@ -1,0 +1,607 @@
+/* ===================================
+   Smart City Waste Management Dashboard
+   CSS
+=================================== */
+
+
+/* Body */
+
+body {
+
+    margin:0;
+
+    padding:0;
+
+    font-family:Arial, sans-serif;
+
+    background:#f4f7fb;
+
+    color:#333;
+
+}
+
+
+
+
+
+
+/* Header */
+
+.header {
+
+
+    background:#1565C0;
+
+    color:white;
+
+    text-align:center;
+
+    padding:20px;
+
+    border-radius:0 0 20px 20px;
+
+
+}
+
+
+.header h1 {
+
+
+    margin:0;
+
+    font-size:32px;
+
+
+}
+
+
+
+
+
+
+
+
+/* Dashboard Cards */
+
+
+.cards {
+
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:25px;
+
+    margin:30px;
+
+
+}
+
+
+
+
+
+.card {
+
+
+    width:220px;
+
+    padding:20px;
+
+    border-radius:15px;
+
+    color:white;
+
+    text-align:center;
+
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+
+}
+
+
+
+
+/* Card Colors */
+
+
+.card:nth-child(1){
+
+    background:#1976D2;
+
+}
+
+
+.card:nth-child(2){
+
+    background:#E53935;
+
+}
+
+
+.card:nth-child(3){
+
+    background:#43A047;
+
+}
+
+
+
+
+
+.card h3{
+
+
+    font-size:20px;
+
+
+}
+
+
+
+.card p{
+
+
+    font-size:35px;
+
+    font-weight:bold;
+
+    margin:10px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Search Box */
+
+
+#searchBox {
+
+
+    display:block;
+
+    margin:20px auto;
+
+    width:300px;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    border:1px solid #ccc;
+
+    font-size:16px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Headings */
+
+
+h2 {
+
+
+    text-align:center;
+
+    color:#1565C0;
+
+    margin-top:30px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Table */
+
+
+table {
+
+
+    width:90%;
+
+    margin:20px auto;
+
+    border-collapse:collapse;
+
+    background:white;
+
+    border-radius:15px;
+
+    overflow:hidden;
+
+
+}
+
+
+
+
+th {
+
+
+    background:#1565C0;
+
+    color:white;
+
+    padding:15px;
+
+
+}
+
+
+
+
+td {
+
+
+    padding:12px;
+
+    text-align:center;
+
+    border-bottom:1px solid #ddd;
+
+
+}
+
+
+
+tr:hover {
+
+
+    background:#f1f1f1;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Pie Chart */
+
+
+.chart-container {
+
+
+    width:320px;
+
+    height:320px;
+
+    margin:30px auto;
+
+
+}
+
+
+
+#wasteChart {
+
+
+    width:100% !important;
+
+    height:100% !important;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Alert Panel */
+
+
+.alert-box {
+
+
+    width:80%;
+
+    margin:20px auto;
+
+    padding:20px;
+
+    background:#fff3e0;
+
+    border-left:8px solid #E53935;
+
+    border-radius:15px;
+
+
+}
+
+
+
+.alert-box p {
+
+
+    color:#c62828;
+
+    font-size:18px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* Leaflet Map */
+
+
+#map {
+
+
+    width:90%;
+
+    height:400px;
+
+    margin:30px auto;
+
+    border-radius:15px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+
+}
+
+
+
+
+
+
+
+
+/* Mobile View */
+
+
+@media(max-width:700px){
+
+
+.cards{
+
+
+    flex-direction:column;
+
+    align-items:center;
+
+
+}
+
+
+.card{
+
+
+    width:80%;
+
+
+}
+
+
+#map{
+
+
+    width:95%;
+
+
+}
+
+
+}
+/* Map Legend */
+
+
+.info.legend {
+
+
+    background:white;
+
+    padding:10px;
+
+    border-radius:10px;
+
+    line-height:25px;
+
+    font-size:14px;
+
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+
+
+}
+.prediction-container{
+
+display:flex;
+
+gap:20px;
+
+flex-wrap:wrap;
+
+}
+
+
+prediction-card{
+
+background:white;
+
+padding:20px;
+
+border-radius:15px;
+
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+width:250px;
+
+}
+/* ===============================
+   Complaint Form
+   =============================== */
+
+
+.complaint-container{
+
+background:white;
+
+padding:25px;
+
+border-radius:15px;
+
+width:400px;
+
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+margin-bottom:30px;
+
+}
+
+
+
+.complaint-container label{
+
+display:block;
+
+margin-top:10px;
+
+font-weight:bold;
+
+}
+
+
+
+.complaint-container input,
+.complaint-container select,
+.complaint-container textarea{
+
+
+width:100%;
+
+padding:10px;
+
+margin-top:5px;
+
+border-radius:8px;
+
+border:1px solid #ccc;
+
+
+}
+
+
+
+.complaint-container textarea{
+
+height:100px;
+
+resize:none;
+
+}
+
+
+
+.complaint-container button{
+
+
+margin-top:15px;
+
+padding:12px 20px;
+
+background:#1976d2;
+
+color:white;
+
+border:none;
+
+border-radius:8px;
+
+cursor:pointer;
+
+
+}
+
+
+
+.complaint-container button:hover{
+
+background:#0d47a1;
+
+}
+/* ===============================
+   Complaint Table
+   =============================== */
+
+
+.complaint-table{
+
+width:95%;
+
+margin:20px auto;
+
+border-collapse:collapse;
+
+background:white;
+
+}
+
+
+
+.complaint-table th{
+
+background:#1976d2;
+
+color:white;
+
+padding:12px;
+
+}
+
+
+
+.complaint-table td{
+
+padding:10px;
+
+border:1px solid #ddd;
+
+text-align:center;
+
+}
+
+
+
+.complaint-table tr:hover{
+
+background:#f1f1f1;
+
+}

@@ -175,7 +175,7 @@ https://ai-enabled-smart-city-waste-management.onrender.com/dashboard
 
 ## 👨‍💻 Author
 
-**Nithin Reddy**
+**Kaithi vinathi**
 
 AI & Data Science Student
 

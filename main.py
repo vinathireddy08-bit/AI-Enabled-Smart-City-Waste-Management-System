@@ -82,9 +82,7 @@ app.mount(
 
 
 
-templates = Jinja2Templates(
-    directory="templates"
-)
+templates = Jinja2Templates(directory="templates")
 
 
 
@@ -202,25 +200,20 @@ def api_bins(
 
 
 @app.get("/dashboard")
-def dashboard(
-    request: Request,
-    db: Session = Depends(get_db)
-):
+def dashboard(request: Request, db: Session = Depends(get_db)):
 
     bins = db.query(WasteBin).all()
-
     complaints = db.query(Complaint).all()
 
     return templates.TemplateResponse(
-        "dashboard.html",
-        {
+        request=request,
+        name="dashboard.html",
+        context={
             "request": request,
             "bins": bins,
             "complaints": complaints
         }
     )
-    
-
 
 
 

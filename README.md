@@ -1,36 +1,30 @@
 # ♻️ AI-Enabled Smart City Waste Management System
 
-## 📌 Project Overview
+## 🚀 Live Demo
 
-The **AI-Enabled Smart City Waste Management System** is a web-based application developed to improve waste collection and monitoring in smart cities. The system monitors waste bin fill levels, predicts future fill levels using Artificial Intelligence (AI), simulates IoT sensor data, displays waste bins on an interactive map, and provides a complaint management system for citizens.
-
-This project demonstrates how AI, IoT, and web technologies can work together to create a cleaner and smarter city.
+**Dashboard:**
+https://ai-enabled-smart-city-waste-management.onrender.com/dashboard
 
 ---
 
-## 🎯 Objectives
+## 📌 Project Overview
 
-- Monitor waste bin fill levels.
-- Predict future waste levels using AI.
-- Simulate IoT sensor data.
-- Display waste bins with GPS locations.
-- Enable citizens to submit complaints.
-- Assist authorities in identifying bins that require collection.
+The **AI-Enabled Smart City Waste Management System** is a web-based application developed using **FastAPI** to help municipalities monitor and manage waste bins efficiently. The system tracks bin fill levels, displays waste bin locations on an interactive dashboard, manages customer complaints, and provides AI-based waste level prediction for smarter waste collection.
 
 ---
 
 ## ✨ Features
 
-- 📊 Interactive Dashboard
-- 🤖 AI-Based Waste Fill Level Prediction
-- 📡 IoT Sensor Simulation
-- 🗺️ Interactive GPS Map
-- 🗑️ Waste Bin Monitoring
-- 🔍 Waste Bin Search
-- 🚨 Alert Panel for Full Bins
-- 📈 Charts and Analytics
-- 📝 Customer Complaint Management
-- 💾 SQLite Database
+* ♻️ Real-time Waste Bin Monitoring
+* 📍 Interactive Waste Bin Dashboard
+* ➕ Add New Waste Bins
+* 🗑️ Waste Bin Details and Status Tracking
+* 📊 Waste Level Visualization using Chart.js
+* 🗺️ Interactive Map using Leaflet
+* 🤖 AI-Based Waste Fill Level Prediction
+* 📝 Customer Complaint Management
+* 💾 SQLite Database Integration
+* 🌐 Cloud Deployment using Render
 
 ---
 
@@ -38,42 +32,51 @@ This project demonstrates how AI, IoT, and web technologies can work together to
 
 ### Backend
 
-- Python
-- FastAPI
-- SQLAlchemy
-- SQLite
+* Python
+* FastAPI
+* SQLAlchemy
+* Pydantic
 
 ### Frontend
 
-- HTML
-- CSS
-- JavaScript
-- Jinja2 Templates
+* HTML5
+* CSS3
+* JavaScript
+* Jinja2 Templates
+
+### Database
+
+* SQLite
 
 ### AI & Visualization
 
-- Scikit-learn
-- Joblib
-- Chart.js
-- Leaflet.js
+* Scikit-learn
+* Chart.js
+* Leaflet Maps
+
+### Version Control & Deployment
+
+* Git
+* GitHub
+* Render
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-AI-Enabled Smart City Waste Management System
+AI-Enabled-Smart-City-Waste-Management-System/
 │
 ├── ai/
 │   ├── prediction.py
-│   ├── training.py
-│   └── waste_prediction_model.pkl
+│   └── training.py
 │
 ├── iot/
 │
 ├── static/
 │   ├── style.css
-│   └── images/
+│   ├── images/
+│   └── js/
 │
 ├── templates/
 │   └── dashboard.html
@@ -90,84 +93,89 @@ AI-Enabled Smart City Waste Management System
 
 ## ⚙️ Installation
 
-### Clone the Repository
+### Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/AI-Enabled-Smart-City-Waste-Management-System.git
+git clone https://github.com/vinathireddy08-bit/AI-Enabled-Smart-City-Waste-Management-System.git
 ```
 
-### Open the Project
+### Move into the project folder
 
 ```bash
 cd AI-Enabled-Smart-City-Waste-Management-System
 ```
 
-### Create Virtual Environment
+### Create a virtual environment
 
 ```bash
 python -m venv .venv
 ```
 
-### Activate Virtual Environment (Windows)
+### Activate the virtual environment
+
+#### Windows
 
 ```bash
 .venv\Scripts\activate
 ```
 
-### Install Dependencies
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Run the Application
+### Run the application
 
 ```bash
 uvicorn main:app --reload
 ```
 
-### Open in Browser
+---
+
+## 🌐 Application URLs
+
+### Local Development
 
 ```
 http://127.0.0.1:8000/dashboard
 ```
 
----
+### Live Deployment
 
-## 📸 Modules
-
-- Dashboard
-- Waste Bin Management
-- AI Prediction
-- IoT Simulation
-- Interactive Map
-- Complaint Management
-- Analytics
+```
+https://ai-enabled-smart-city-waste-management.onrender.com/dashboard
+```
 
 ---
 
-## 🔮 Future Enhancements
+## 📊 System Workflow
 
-- Real IoT Sensor Integration
-- Live GPS Tracking
-- QR Code for Waste Bins
-- Mobile Application
-- Email Notifications
-- Garbage Truck Route Optimization
-- Camera-Based Waste Detection
-- Admin Login System
-
----
-
-## 📷 Screenshots
-
-You can add screenshots of your dashboard here after uploading the project.
+1. Waste bins are registered with a unique Bin ID.
+2. Each Bin ID is linked to its location and GPS coordinates.
+3. The system stores all waste bin information in the database.
+4. Users can add and monitor waste bins through the dashboard.
+5. AI predicts future waste fill levels.
+6. Customer complaints are recorded and managed.
+7. Interactive charts and maps provide a visual overview of waste collection.
 
 ---
 
-## 👨‍💻 Developed By
+## 🎯 Future Enhancements
 
-**Vinathi Kaithi**
+* IoT Sensor Integration
+* User Authentication
+* Email/SMS Alerts
+* Garbage Truck Route Optimization
+* Camera-Based Waste Detection
+* Mobile Application
+* Real-Time Notifications
+
+---
+
+## 👨‍💻 Author
+
+**Nithin Reddy**
 
 AI & Data Science Student
 
@@ -175,6 +183,8 @@ GitHub: https://github.com/vinathireddy08-bit
 
 ---
 
-## 📄 License
+## 📜 License
+
+This project is developed for educational and portfolio purposes.
 
 This project is developed for educational and academic purposes.

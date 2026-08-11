@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-title">
+
+    <h2>
+        AI Waste Fill Prediction
+    </h2>
+
+    <p>
+        Machine Learning based waste collection prediction
+    </p>
+
+</div>
+
+
+<div class="prediction-card">
+
+    <h3>
+        Select Waste Bin
+    </h3>
+
+
+    <select id="binSelect">
+
+        <option value="">
+            Select a waste bin
+        </option>
+
+    </select>
+
+
+    <button onclick="predict()">
+        Predict Waste Fill Level
+    </button>
+
+
+    <div id="result"></div>
+
+</div>
+
+
+<script>
+
+/* ==========================================
+   LOAD ALL BINS
+========================================== */
+
+function loadBins() {
+
+    fetch("/bins")
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        const select =
+            document.getElementById("binSelect");
+
+        select.innerHTML =
+            '<option value="">Select a waste bin</option>';
+
+
+        data.forEach(bin => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = bin.id;
+
+            option.textContent =
+                bin.bin_code +
+                " - " +
+                bin.location +
+                " (" +
+                bin.fill_level +
+                "%)";
+
+            select.appendChild(option);
+
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Error loading bins:",
+            error
+        );
+
+    });
+
+}
+
+
+/* ==========================================
+   AI PREDICTION
+========================================== */
+
+function predict() {
+
+    const id =
+        document.getElementById("binSelect").value;
+
+
+    if (!id) {
+
+        document.getElementById("result").innerHTML =
+
+            "<p>Please select a waste bin.</p>";
+
+        return;
+
+    }
+
+
+    fetch("/ai/predict/" + id)
+
+    .then(response => response.json())
+
+    .then(data => {
+
+
+        if (data.error) {
+
+            document.getElementById("result").innerHTML =
+
+                `<p>${data.error}</p>`;
+
+            return;
+
+        }
+
+
+        document.getElementById("result").innerHTML = `
+
+            <h3>Prediction Result</h3>
+
+            <p>
+                <strong>Bin:</strong>
+                ${data.bin_id}
+            </p>
+
+            <p>
+                <strong>Location:</strong>
+                ${data.location}
+            </p>
+
+            <p>
+                <strong>Current Fill:</strong>
+                ${data.current_fill}%
+            </p>
+
+            <p>
+                <strong>Predicted Fill:</strong>
+                ${data.predicted_fill}%
+            </p>
+
+            <p>
+                <strong>Collection Decision:</strong>
+                ${data.decision}
+            </p>
+
+        `;
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Prediction error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* ==========================================
+   INITIAL LOAD
+========================================== */
+
+loadBins();
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,950 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ==========================================
+     PAGE HEADER
+========================================== -->
+
+<div class="page-title">
+    <h2>Waste Bin Management</h2>
+    <p>Monitor and manage smart waste bins</p>
+</div>
+
+<!-- ==========================================
+     ADD NEW BIN
+========================================== -->
+
+<div class="add-bin-card">
+
+```
+<div class="add-bin-header">
+    <div>
+        <h3>Add New Waste Bin</h3>
+        <p>
+            Register a new smart waste bin and select its exact location
+        </p>
+    </div>
+</div>
+
+
+<div class="add-bin-form">
+
+    <!-- Bin Code -->
+    <div class="form-group">
+
+        <label for="binCode">
+            Bin Code
+        </label>
+
+        <input
+            type="text"
+            id="binCode"
+            placeholder="Example: BIN016"
+        >
+
+    </div>
+
+
+    <!-- Location -->
+    <div class="form-group">
+
+        <label for="binLocation">
+            Location
+        </label>
+
+        <input
+            type="text"
+            id="binLocation"
+            placeholder="Example: Airport Road"
+        >
+
+    </div>
+
+
+    <!-- Fill Level -->
+    <div class="form-group">
+
+        <label for="binFill">
+            Initial Fill Level (%)
+        </label>
+
+        <input
+            type="number"
+            id="binFill"
+            min="0"
+            max="100"
+            value="0"
+            placeholder="0 - 100"
+        >
+
+    </div>
+
+
+    <!-- Add Button -->
+    <div class="form-button">
+
+        <button
+            type="button"
+            onclick="addBin()"
+        >
+            + Add Bin
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     LOCATION SELECTION
+========================================== -->
+
+<div class="bin-location-section">
+
+    <div class="location-header">
+
+        <h3>Select Exact Bin Location</h3>
+
+        <p>
+            Click on the map to select the exact location of the waste bin.
+        </p>
+
+    </div>
+
+
+    <div id="binLocationMap"></div>
+
+
+    <div class="coordinates-box">
+
+        <div>
+            <strong>Latitude:</strong>
+            <span id="selectedLatitude">
+                Not selected
+            </span>
+        </div>
+
+        <div>
+            <strong>Longitude:</strong>
+            <span id="selectedLongitude">
+                Not selected
+            </span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Message -->
+
+<div
+    id="addBinMessage"
+    class="add-bin-message"
+></div>
+```
+
+</div>
+
+<!-- ==========================================
+     SEARCH & FILTER
+========================================== -->
+
+<div class="toolbar">
+
+```
+<input
+    type="text"
+    id="searchBox"
+    placeholder="🔍 Search by Bin Code or Location..."
+>
+
+
+<select id="statusFilter">
+
+    <option value="ALL">
+        All Status
+    </option>
+
+    <option value="FULL">
+        FULL
+    </option>
+
+    <option value="MEDIUM">
+        MEDIUM
+    </option>
+
+    <option value="EMPTY">
+        EMPTY
+    </option>
+
+</select>
+```
+
+</div>
+
+<!-- ==========================================
+     BIN TABLE
+========================================== -->
+
+<table class="complaint-table">
+
+```
+<thead>
+
+    <tr>
+
+        <th>Bin Code</th>
+
+        <th>Location</th>
+
+        <th>Fill Level</th>
+
+        <th>Status</th>
+
+    </tr>
+
+</thead>
+
+
+<tbody id="binTable">
+</tbody>
+```
+
+</table>
+
+<!-- ==========================================
+     LEAFLET
+========================================== -->
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<style>
+
+/* ==========================================
+   LOCATION MAP
+========================================== */
+
+.bin-location-section {
+
+    margin-top: 30px;
+
+    padding-top: 25px;
+
+    border-top: 1px solid #e5e7eb;
+
+}
+
+
+.location-header {
+
+    margin-bottom: 15px;
+
+}
+
+
+.location-header h3 {
+
+    margin: 0 0 6px 0;
+
+    font-size: 21px;
+
+    color: #1565C0;
+
+}
+
+
+.location-header p {
+
+    margin: 0;
+
+    font-size: 14px;
+
+    color: #6b7280;
+
+}
+
+
+/* ==========================================
+   MAP
+========================================== */
+
+#binLocationMap {
+
+    width: 100%;
+
+    height: 350px;
+
+    border-radius: 12px;
+
+    border: 1px solid #dbe2ea;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.08);
+
+}
+
+
+/* ==========================================
+   COORDINATES
+========================================== */
+
+.coordinates-box {
+
+    display: flex;
+
+    gap: 35px;
+
+    margin-top: 15px;
+
+    padding: 14px 18px;
+
+    background: #f5f8fc;
+
+    border: 1px solid #e1e7ef;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+
+    color: #374151;
+
+}
+
+
+.coordinates-box strong {
+
+    color: #1565C0;
+
+}
+
+
+.coordinates-box span {
+
+    margin-left: 5px;
+
+    font-weight: 600;
+
+}
+
+
+@media(max-width:700px) {
+
+    .coordinates-box {
+
+        flex-direction: column;
+
+        gap: 8px;
+
+    }
+
+    #binLocationMap {
+
+        height: 300px;
+
+    }
+
+}
+
+</style>
+
+<script>
+
+/* ==========================================
+   BIN DATA
+========================================== */
+
+let allBins = [];
+
+
+/* ==========================================
+   SELECTED COORDINATES
+========================================== */
+
+let selectedLatitude = null;
+
+let selectedLongitude = null;
+
+let locationMarker = null;
+
+
+/* ==========================================
+   CREATE LOCATION MAP
+========================================== */
+
+const binMap = L.map("binLocationMap")
+    .setView(
+        [17.3850, 78.4867],
+        13
+    );
+
+
+/* ==========================================
+   OPEN STREET MAP
+========================================== */
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        attribution:
+            "© OpenStreetMap Contributors"
+    }
+).addTo(binMap);
+
+
+/* ==========================================
+   CLICK MAP TO SELECT LOCATION
+========================================== */
+
+binMap.on("click", function(event) {
+
+    selectedLatitude =
+        event.latlng.lat;
+
+    selectedLongitude =
+        event.latlng.lng;
+
+
+    /* Remove previous marker */
+
+    if(locationMarker) {
+
+        binMap.removeLayer(
+            locationMarker
+        );
+
+    }
+
+
+    /* Create new marker */
+
+    locationMarker =
+        L.marker(
+            [
+                selectedLatitude,
+                selectedLongitude
+            ]
+        )
+        .addTo(binMap);
+
+
+    locationMarker.bindPopup(
+        "<b>Selected Bin Location</b><br>" +
+        "Latitude: " +
+        selectedLatitude.toFixed(6) +
+        "<br>" +
+        "Longitude: " +
+        selectedLongitude.toFixed(6)
+    )
+    .openPopup();
+
+
+    /* Display coordinates */
+
+    document.getElementById(
+        "selectedLatitude"
+    ).textContent =
+        selectedLatitude.toFixed(6);
+
+
+    document.getElementById(
+        "selectedLongitude"
+    ).textContent =
+        selectedLongitude.toFixed(6);
+
+});
+
+
+
+/* ==========================================
+   LOAD BINS
+========================================== */
+
+function loadBins(){
+
+    fetch("/bins")
+
+    .then(response =>
+        response.json()
+    )
+
+    .then(data => {
+
+        allBins = data;
+
+        renderTable();
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+}
+
+
+
+/* ==========================================
+   ADD NEW BIN
+========================================== */
+
+function addBin(){
+
+    const binCode =
+        document
+        .getElementById("binCode")
+        .value
+        .trim();
+
+
+    const location =
+        document
+        .getElementById("binLocation")
+        .value
+        .trim();
+
+
+    const fillLevel =
+        document
+        .getElementById("binFill")
+        .value;
+
+
+    const message =
+        document
+        .getElementById("addBinMessage");
+
+
+    /* ======================================
+       VALIDATION
+    ====================================== */
+
+    if(!binCode){
+
+        message.textContent =
+            "Please enter a Bin Code.";
+
+        message.className =
+            "add-bin-message error";
+
+        return;
+
+    }
+
+
+    if(!location){
+
+        message.textContent =
+            "Please enter a Location.";
+
+        message.className =
+            "add-bin-message error";
+
+        return;
+
+    }
+
+
+    if(
+        fillLevel === ""
+        ||
+        fillLevel < 0
+        ||
+        fillLevel > 100
+    ){
+
+        message.textContent =
+            "Fill level must be between 0 and 100.";
+
+        message.className =
+            "add-bin-message error";
+
+        return;
+
+    }
+
+
+    /* ======================================
+       LOCATION VALIDATION
+    ====================================== */
+
+    if(
+        selectedLatitude === null ||
+        selectedLongitude === null
+    ){
+
+        message.textContent =
+            "Please select the exact bin location on the map.";
+
+        message.className =
+            "add-bin-message error";
+
+        return;
+
+    }
+
+
+    /* ======================================
+       DETERMINE STATUS
+    ====================================== */
+
+    let status;
+
+
+    if(fillLevel >= 80){
+
+        status = "FULL";
+
+    }
+
+    else if(fillLevel >= 40){
+
+        status = "MEDIUM";
+
+    }
+
+    else{
+
+        status = "EMPTY";
+
+    }
+
+
+    /* ======================================
+       SEND DATA
+    ====================================== */
+
+    const url =
+        "/bins"
+        +
+        "?bin_code="
+        + encodeURIComponent(binCode)
+
+        +
+        "&location="
+        + encodeURIComponent(location)
+
+        +
+        "&fill_level="
+        + encodeURIComponent(fillLevel)
+
+        +
+        "&status="
+        + encodeURIComponent(status)
+
+        +
+        "&latitude="
+        + encodeURIComponent(selectedLatitude)
+
+        +
+        "&longitude="
+        + encodeURIComponent(selectedLongitude);
+
+
+    fetch(url, {
+
+        method: "POST"
+
+    })
+
+    .then(response => {
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+
+        /* ==================================
+           CHECK SERVER RESPONSE
+        ================================== */
+
+        if(data.error){
+
+            message.textContent =
+                data.error;
+
+            message.className =
+                "add-bin-message error";
+
+            return;
+
+        }
+
+
+        /* ==================================
+           SUCCESS
+        ================================== */
+
+        message.textContent =
+            "Bin added successfully at the selected location.";
+
+        message.className =
+            "add-bin-message success";
+
+
+        /* ==================================
+           CLEAR FORM
+        ================================== */
+
+        document
+        .getElementById("binCode")
+        .value = "";
+
+
+        document
+        .getElementById("binLocation")
+        .value = "";
+
+
+        document
+        .getElementById("binFill")
+        .value = "0";
+
+
+        /* ==================================
+           CLEAR MARKER
+        ================================== */
+
+        if(locationMarker){
+
+            binMap.removeLayer(
+                locationMarker
+            );
+
+            locationMarker = null;
+
+        }
+
+
+        selectedLatitude = null;
+
+        selectedLongitude = null;
+
+
+        document.getElementById(
+            "selectedLatitude"
+        ).textContent =
+            "Not selected";
+
+
+        document.getElementById(
+            "selectedLongitude"
+        ).textContent =
+            "Not selected";
+
+
+        /* ==================================
+           RELOAD BINS
+        ================================== */
+
+        loadBins();
+
+
+        /* ==================================
+           CLEAR MESSAGE
+        ================================== */
+
+        setTimeout(() => {
+
+            message.textContent = "";
+
+        }, 3000);
+
+    })
+
+
+    .catch(error => {
+
+        console.error(error);
+
+        message.textContent =
+            "Unable to add bin.";
+
+        message.className =
+            "add-bin-message error";
+
+    });
+
+}
+
+
+
+/* ==========================================
+   RENDER TABLE
+========================================== */
+
+function renderTable(){
+
+    let table =
+        document.getElementById(
+            "binTable"
+        );
+
+
+    table.innerHTML = "";
+
+
+    let search =
+        document
+        .getElementById("searchBox")
+        .value
+        .toLowerCase();
+
+
+    let filter =
+        document
+        .getElementById("statusFilter")
+        .value;
+
+
+    allBins.forEach(bin => {
+
+
+        if(
+
+            (
+                filter === "ALL"
+                ||
+                bin.status === filter
+            )
+
+            &&
+
+            (
+
+                bin.bin_code
+                .toLowerCase()
+                .includes(search)
+
+                ||
+
+                bin.location
+                .toLowerCase()
+                .includes(search)
+
+            )
+
+        ){
+
+
+            let badge = "";
+
+
+            if(bin.status === "FULL"){
+
+                badge =
+                    '<span class="status full">FULL</span>';
+
+            }
+
+
+            else if(bin.status === "MEDIUM"){
+
+                badge =
+                    '<span class="status medium">MEDIUM</span>';
+
+            }
+
+
+            else{
+
+                badge =
+                    '<span class="status empty">EMPTY</span>';
+
+            }
+
+
+            table.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${bin.bin_code}
+                    </td>
+
+                    <td>
+                        ${bin.location}
+                    </td>
+
+                    <td>
+
+                        <div class="progress-container">
+
+                            <div
+                                class="progress-bar"
+                                style="width:${bin.fill_level}%"
+                            >
+
+                                ${bin.fill_level}%
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+                        ${badge}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+    });
+
+}
+
+
+
+/* ==========================================
+   SEARCH
+========================================== */
+
+document
+.getElementById("searchBox")
+.addEventListener(
+    "keyup",
+    renderTable
+);
+
+
+
+/* ==========================================
+   STATUS FILTER
+========================================== */
+
+document
+.getElementById("statusFilter")
+.addEventListener(
+    "change",
+    renderTable
+);
+
+
+
+/* ==========================================
+   INITIAL LOAD
+========================================== */
+
+loadBins();
+
+</script>
+
+{% endblock %}

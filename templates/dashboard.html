@@ -1,1458 +1,907 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
+{% block content %}
 
-<meta charset="UTF-8">
+<div class="dashboard-container">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+<!-- ========================================
+     PAGE HEADER
+======================================== -->
+
+<div class="dashboard-header">
+
+    <div>
+        <h1>Smart Waste Management Dashboard</h1>
+
+        <p>
+            AI Enabled IoT Waste Monitoring System
+        </p>
+    </div>
+
+</div>
 
 
-<title>
-AI Smart City Waste Management Dashboard
-</title>
+<!-- ========================================
+     SUMMARY CARDS
+======================================== -->
+
+<div class="dashboard-cards">
+
+    <!-- TOTAL BINS -->
+
+    <div class="stat-card">
+
+        <h4>Total Bins</h4>
+
+        <h2 id="totalBins">0</h2>
+
+        <span>Connected Bins</span>
+
+    </div>
 
 
-<link rel="stylesheet" href="/static/style.css">
+    <!-- FULL BINS -->
+
+    <div class="stat-card danger">
+
+        <h4>Full Bins</h4>
+
+        <h2 id="fullBins">0</h2>
+
+        <span>Need Collection</span>
+
+    </div>
 
 
-<!-- Chart.js -->
+    <!-- AVERAGE FILL -->
+
+    <div class="stat-card warning">
+
+        <h4>Average Fill</h4>
+
+        <h2 id="averageFill">0%</h2>
+
+        <span>Current Waste Level</span>
+
+    </div>
+
+
+    <!-- ALERTS -->
+
+    <div class="stat-card success">
+
+        <h4>Alerts</h4>
+
+        <h2 id="alertCount">0</h2>
+
+        <span>Bins Above 75%</span>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================
+     CHARTS
+======================================== -->
+
+<div class="charts-container">
+
+
+    <!-- HIGH FILL BINS BAR CHART -->
+
+    <div class="chart-card">
+
+        <h3>
+            High Fill Bins (&gt;75%)
+        </h3>
+
+        <div class="chart-box">
+
+            <canvas id="barChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- WASTE STATUS PIE CHART -->
+
+    <div class="chart-card">
+
+        <h3>
+            Waste Status Distribution
+        </h3>
+
+        <div class="chart-box">
+
+            <canvas id="pieChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================
+======================================== -->
+<!-- ========================================
+     AI PREDICTION
+======================================== -->
+
+<div class="ai-card">
+
+    <div class="ai-title">
+
+        <div class="ai-icon">
+            🤖
+        </div>
+
+        <div>
+
+            <h3>
+                AI Prediction
+            </h3>
+
+            <p>
+                Intelligent waste collection priority
+                based on current bin fill levels.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="prediction-box">
+
+        <div class="prediction-label">
+            Next Collection Priority
+        </div>
+
+        <div
+            class="prediction-result"
+            id="priorityBin"
+        >
+            Loading...
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================
+     LIVE BIN MONITORING
+======================================== -->
+
+<div class="table-card">
+
+    <h3>
+        Live Bin Monitoring
+    </h3>
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Bin ID
+                </th>
+
+                <th>
+                    Location
+                </th>
+
+                <th>
+                    Fill Level
+                </th>
+
+                <th>
+                    Status
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody id="liveBinTable">
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    style="text-align:center;"
+                >
+                    Loading bin data...
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+```
+
+</div>
+
+<!-- ========================================
+     CHART.JS
+======================================== -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-
-<!-- Leaflet Map -->
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-
-</head>
-
-
-
-<body>
-
-
-
-<div class="header">
-
-<h1>
-♻️ AI-Enabled Smart City Waste Management System
-</h1>
-
-</div>
-<!-- ===============================
-     Complaint List
-     =============================== -->
-
-<h2>
-📋 Customer Complaints
-</h2>
-
-
-<table class="complaint-table">
-
-<thead>
-
-<tr>
-
-<th>ID</th>
-
-<th>Name</th>
-
-<th>Location</th>
-
-<th>Type</th>
-
-<th>Description</th>
-
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-
-<tbody>
-
-
-{% for complaint in complaints %}
-
-
-<tr>
-
-<td>
-{{complaint.id}}
-</td>
-
-
-<td>
-{{complaint.name}}
-</td>
-
-
-<td>
-{{complaint.location}}
-</td>
-
-
-<td>
-{{complaint.complaint_type}}
-</td>
-
-
-<td>
-{{complaint.description}}
-</td>
-
-
-<td>
-{{complaint.status}}
-</td>
-
-
-</tr>
-
-
-{% endfor %}
-
-
-</tbody>
-
-
-</table>
-
-
-
-
-
-
-
-<!-- ===============================
-     Dashboard Cards
-     =============================== -->
-
-
-<div class="cards">
-
-
-
-<div class="card total">
-
-
-<h3>
-Total Bins
-</h3>
-
-
-<p>
-
-{{bins|length}}
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-<div class="card full">
-
-
-<h3>
-Full Bins
-</h3>
-
-
-<p>
-
-
-{% set full_count = 0 %}
-
-
-
-{% for bin in bins %}
-
-
-
-{% if bin.fill_level > 80 %}
-
-
-{% set full_count = full_count + 1 %}
-
-
-{% endif %}
-
-
-
-{% endfor %}
-
-
-
-{{full_count}}
-
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-<div class="card average">
-
-
-<h3>
-Average Fill
-</h3>
-
-
-<p>
-
-
-{% set total = 0 %}
-
-
-
-{% for bin in bins %}
-
-
-{% set total = total + bin.fill_level %}
-
-
-{% endfor %}
-
-
-
-
-{% if bins|length > 0 %}
-
-
-{{(total / bins|length)|round}}%
-
-
-{% else %}
-
-
-0%
-
-
-{% endif %}
-
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- ===============================
-     Search
-     =============================== -->
-
-
-<h2>
-🔍 Search Waste Bin
-</h2>
-
-
-
-<input
-
-type="text"
-
-id="searchBox"
-
-placeholder="Search Bin or Location..."
-
-onkeyup="searchTable()"
-
-/>
-
-
-
-
-
-
-
-
-
-<!-- ===============================
-     Waste Bin Table
-     =============================== -->
-
-
-<h2>
-🗑 Waste Bin Details
-</h2>
-
-
-
-
-<table id="binTable">
-
-
-<thead>
-
-
-<tr>
-
-
-<th>
-ID
-</th>
-
-
-<th>
-Location
-</th>
-
-
-<th>
-Fill Level
-</th>
-
-
-<th>
-Status
-</th>
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-<tbody>
-
-
-
-{% for bin in bins %}
-
-
-
-<tr>
-
-
-<td>
-{{bin.id}}
-</td>
-
-
-
-<td>
-{{bin.location}}
-</td>
-
-
-
-<td>
-{{bin.fill_level}}%
-</td>
-
-
-
-
-<td>
-
-
-{% if bin.status == "FULL" %}
-
-
-🔴 FULL
-
-
-
-{% elif bin.status == "MEDIUM" %}
-
-
-🟠 MEDIUM
-
-
-
-{% else %}
-
-
-🟢 EMPTY
-
-
-
-{% endif %}
-
-
-
-</td>
-
-
-
-</tr>
-
-
-
-{% endfor %}
-
-
-
-</tbody>
-
-
-
-</table>
-<!-- ===============================
-     Waste Status Pie Chart
-     =============================== -->
-
-
-<h2>
-📊 Waste Status Chart
-</h2>
-
-
-<div class="chart-container">
-
-
-<canvas id="wasteChart"></canvas>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- ===============================
-     AI Prediction Section
-     =============================== -->
-
-
-<h2>
-🤖 AI Waste Prediction
-</h2>
-
-
-
-<div class="prediction-container">
-
-
-
-{% for bin in bins %}
-
-
-
-<div class="prediction-card">
-
-
-
-<h3>
-{{bin.bin_code}}
-</h3>
-
-<p>
-📍 {{bin.location}}
-</p>
-
-
-
-<p>
-
-📍 Location:
-
-{{bin.location}}
-
-</p>
-
-
-
-
-
-<p>
-
-Current Fill:
-
-<b>
-{{bin.fill_level}}%
-</b>
-
-
-</p>
-
-
-
-
-
-
-<p>
-
-AI Predicted Fill:
-
-<b id="prediction{{bin.id}}">
-
-Loading...
-
-</b>
-
-
-</p>
-
-
-
-
-
-
-<p>
-
-AI Decision:
-
-<b id="status{{bin.id}}">
-
-Checking...
-
-</b>
-
-
-</p>
-
-
-
-
-</div>
-
-
-
-{% endfor %}
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- ===============================
-     Alert Panel
-     =============================== -->
-
-
-<h2>
-🚨 Alert Panel
-</h2>
-
-
-
-
-<div class="alert-box">
-
-
-
-{% for bin in bins %}
-
-
-
-
-{% if bin.fill_level > 80 %}
-
-
-
-<div class="alert">
-
-
-⚠️ Bin ID:
-
-{{bin.id}}
-
-
-<br>
-
-
-📍 Location:
-
-{{bin.location}}
-
-
-<br>
-
-
-Fill Level:
-
-{{bin.fill_level}}%
-
-
-<br>
-
-
-Status:
-
-Collection Required 🚛
-
-
-</div>
-
-
-
-
-{% endif %}
-
-
-
-
-{% endfor %}
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- ===============================
-     Waste Map
-     =============================== -->
-
-
-<h2>
-🗺 Waste Bin Map
-</h2>
-
-
-
-<div id="map"></div>
-<!-- Add New Waste Bin -->
-
-<h2>Add New Waste Bin</h2>
-
-<form action="/add-bin" method="post">
-
-    <input 
-    type="text" 
-    name="bin_code" 
-    placeholder="Bin ID"
-    required>
-
-
-    <input 
-    type="text" 
-    name="location" 
-    placeholder="Location"
-    required>
-
-
-    <input 
-    type="text" 
-    name="latitude" 
-    placeholder="Latitude"
-    required>
-
-
-    <input 
-    type="text" 
-    name="longitude" 
-    placeholder="Longitude"
-    required>
-
-
-    <input 
-    type="number" 
-    name="fill_level" 
-    placeholder="Fill Level (%)"
-    required>
-
-
-    <input 
-    type="text" 
-    name="status" 
-    placeholder="Status"
-    required>
-
-
-    <button type="submit">
-        Add Bin
-    </button>
-
-</form>
-
-<hr>
-<!-- ===============================
-     Customer Complaint Form
-     =============================== -->
-
-
-<h2>
-📢 Report Waste Issue
-</h2>
-
-
-
-<div class="complaint-container">
-
-
-<form id="complaintForm">
-
-
-
-<label>
-Name
-</label>
-
-
-<input
-
-type="text"
-
-name="name"
-
-placeholder="Enter your name"
-
-required
-
->
-
-
-
-
-
-
-<label>
-Select Bin
-</label>
-
-<select name="location" required>
-
-{% for bin in bins %}
-
-<option value="{{bin.bin_code}}">
-{{bin.bin_code}} - {{bin.location}}
-</option>
-
-{% endfor %}
-
-</select>
->
-
-
-
-
-
-
-<label>
-Complaint Type
-</label>
-
-
-
-<select name="complaint_type">
-
-
-<option>
-Overflowing Bin
-</option>
-
-
-<option>
-Waste Not Collected
-</option>
-
-
-<option>
-Bad Smell
-</option>
-
-
-<option>
-Damaged Bin
-</option>
-
-
-<option>
-Other
-</option>
-
-
-</select>
-
-
-
-
-
-
-
-
-<label>
-Description
-</label>
-
-
-
-<textarea
-
-name="description"
-
-placeholder="Describe the issue"
-
-required>
-
-</textarea>
-
-
-
-
-
-
-
-<button type="submit">
-
-Submit Complaint
-
-</button>
-
-
-
-</form>
-
-
-</div>
-
-
-
-
-
-
-
-
 <script>
 
+/* ========================================
+   GLOBAL VARIABLES
+======================================== */
+
+let barChart = null;
+
+let pieChart = null;
 
 
-// ===============================
-// Search Function
-// ===============================
+/* ========================================
+   LOAD DASHBOARD DATA
+======================================== */
+
+function loadDashboardData() {
+
+    fetch("/dashboard-data")
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Dashboard API failed"
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            console.log(
+                "Dashboard Data:",
+                data
+            );
 
 
-function searchTable(){
+            /* ========================================
+               SUMMARY CARDS
+            ======================================== */
+
+            document.getElementById(
+                "totalBins"
+            ).textContent =
+                data.total_bins;
 
 
-let input =
-
-document.getElementById("searchBox")
-.value.toLowerCase();
-
-
+            document.getElementById(
+                "fullBins"
+            ).textContent =
+                data.full_bins;
 
 
-let rows =
-
-document.querySelectorAll("#binTable tbody tr");
-
-
-
+            document.getElementById(
+                "averageFill"
+            ).textContent =
+                data.average_fill + "%";
 
 
-rows.forEach(function(row){
+            /* ========================================
+               ALERT COUNT
+               
+               Count bins above 75%
+            ======================================== */
+
+            let alertCount = 0;
+
+            if (data.high_fill_count !== undefined) {
+
+                alertCount =
+                    data.high_fill_count;
+
+            }
+            else {
+
+                alertCount =
+                    data.top_labels.length;
+
+            }
 
 
-let text = row.innerText.toLowerCase();
+            document.getElementById(
+                "alertCount"
+            ).textContent =
+                alertCount;
 
 
+            /* ========================================
+               BAR CHART
+               
+               Only bins above 75%
+            ======================================== */
 
-row.style.display =
+            if (barChart === null) {
 
-text.includes(input)
-
-?
-
-""
-
-:
-
-"none";
+                const bar =
+                    document.getElementById(
+                        "barChart"
+                    );
 
 
+                barChart = new Chart(
+                    bar,
+                    {
 
-});
+                        type: "bar",
 
+                        data: {
+
+                            labels:
+                                data.top_labels,
+
+                            datasets: [
+
+                                {
+
+                                    label:
+                                        "Fill Level (%)",
+
+                                    data:
+                                        data.top_fill_levels,
+
+                                    backgroundColor:
+                                        data.top_fill_levels.map(
+                                            value => {
+
+                                                if (
+                                                    value >= 90
+                                                ) {
+
+                                                    return "#dc3545";
+
+                                                }
+
+                                                return "#ff9800";
+
+                                            }
+                                        ),
+
+                                    borderRadius: 6
+
+                                }
+
+                            ]
+
+                        },
+
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            plugins: {
+
+                                legend: {
+
+                                    display: false
+
+                                }
+
+                            },
+
+
+                            scales: {
+
+                                x: {
+
+                                    ticks: {
+
+                                        maxRotation: 45,
+
+                                        minRotation: 0
+
+                                    }
+
+                                },
+
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    max: 100,
+
+                                    ticks: {
+
+                                        stepSize: 20
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            else {
+
+                barChart.data.labels =
+                    data.top_labels;
+
+
+                barChart.data.datasets[0].data =
+                    data.top_fill_levels;
+
+
+                barChart.data.datasets[0].backgroundColor =
+                    data.top_fill_levels.map(
+                        value => {
+
+                            if (value >= 90) {
+
+                                return "#dc3545";
+
+                            }
+
+                            return "#ff9800";
+
+                        }
+                    );
+
+
+                barChart.update();
+
+            }
+
+
+            /* ========================================
+               PIE / DOUGHNUT CHART
+            ======================================== */
+
+            if (pieChart === null) {
+
+                const pie =
+                    document.getElementById(
+                        "pieChart"
+                    );
+
+
+                pieChart = new Chart(
+                    pie,
+                    {
+
+                        type: "doughnut",
+
+                        data: {
+
+                            labels: [
+
+                                "FULL",
+
+                                "MEDIUM",
+
+                                "EMPTY"
+
+                            ],
+
+
+                            datasets: [
+
+                                {
+
+                                    data: [
+
+                                        data.status.FULL,
+
+                                        data.status.MEDIUM,
+
+                                        data.status.EMPTY
+
+                                    ],
+
+
+                                    backgroundColor: [
+
+                                        "#dc3545",
+
+                                        "#ff9800",
+
+                                        "#28a745"
+
+                                    ],
+
+
+                                    borderWidth: 2
+
+                                }
+
+                            ]
+
+                        },
+
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            plugins: {
+
+                                legend: {
+
+                                    position:
+                                        "bottom"
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            else {
+
+                pieChart.data.datasets[0].data = [
+
+                    data.status.FULL,
+
+                    data.status.MEDIUM,
+
+                    data.status.EMPTY
+
+                ];
+
+
+                pieChart.update();
+
+            }
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "Dashboard data error:",
+                error
+            );
+
+        });
 
 }
 
 
+/* ========================================
+   LOAD ALL LIVE BINS
+======================================== */
 
+function loadLiveBins() {
 
+    fetch("/bins")
 
+        .then(response => {
 
+            if (!response.ok) {
 
+                throw new Error(
+                    "Bins API failed"
+                );
 
+            }
 
-// ===============================
-// AI Prediction
-// ===============================
+            return response.json();
 
+        })
 
-{% for bin in bins %}
 
+        .then(bins => {
 
+            console.log(
+                "Live Bins:",
+                bins
+            );
 
-fetch("/ai/predict/{{bin.id}}")
 
+            const table =
+                document.getElementById(
+                    "liveBinTable"
+                );
 
 
-.then(response => response.json())
+            if (!table) {
 
+                console.error(
+                    "liveBinTable not found"
+                );
 
+                return;
 
-.then(data => {
+            }
 
 
+            table.innerHTML = "";
 
-document.getElementById(
 
-"prediction{{bin.id}}"
+            /* ========================================
+               NO BINS
+            ======================================== */
 
-).innerHTML =
+            if (bins.length === 0) {
 
+                table.innerHTML = `
 
-data.predicted_fill + "%";
+                    <tr>
 
+                        <td
+                            colspan="4"
+                            style="text-align:center;"
+                        >
 
+                            No bins available
 
+                        </td>
 
+                    </tr>
 
-document.getElementById(
+                `;
 
-"status{{bin.id}}"
+                return;
 
-).innerHTML =
+            }
 
 
-data.decision;
+            /* ========================================
+               DISPLAY ALL BINS
+            ======================================== */
 
+            bins.forEach(bin => {
 
 
+                let statusClass =
+                    "empty";
 
-});
 
+                if (
+                    bin.status === "FULL"
+                ) {
 
+                    statusClass =
+                        "full";
 
-{% endfor %}
+                }
 
 
+                else if (
+                    bin.status === "MEDIUM"
+                ) {
 
+                    statusClass =
+                        "medium";
 
+                }
 
 
+                table.innerHTML += `
 
+                    <tr>
 
+                        <td>
 
-// ===============================
-// Complaint Submit
-// ===============================
+                            ${bin.bin_code}
 
+                        </td>
 
-document.getElementById("complaintForm")
 
-.addEventListener("submit", function(e){
+                        <td>
 
+                            ${bin.location}
 
+                        </td>
 
-e.preventDefault();
 
+                        <td>
 
+                            <div
+                                class="progress-container"
+                            >
 
+                                <div
+                                    class="progress-bar"
+                                    style="width:${bin.fill_level}%"
+                                >
 
+                                    ${bin.fill_level}%
 
-let data = {
+                                </div>
 
+                            </div>
 
+                        </td>
 
-name:
 
-document.getElementsByName("name")[0].value,
+                        <td>
 
+                            <span
+                                class="status ${statusClass}"
+                            >
 
+                                ${bin.status}
 
+                            </span>
 
-location:
+                        </td>
 
-document.getElementsByName("location")[0].value,
+                    </tr>
 
+                `;
 
+            });
 
+        })
 
-complaint_type:
 
-document.getElementsByName("complaint_type")[0].value,
+        .catch(error => {
 
+            console.error(
+                "Live monitoring error:",
+                error
+            );
 
 
+            const table =
+                document.getElementById(
+                    "liveBinTable"
+                );
 
-description:
 
-document.getElementsByName("description")[0].value
+            if (table) {
 
+                table.innerHTML = `
 
+                    <tr>
 
-};
+                        <td
+                            colspan="4"
+                            style="text-align:center;color:red;"
+                        >
 
+                            Unable to load bin data
 
+                        </td>
 
+                    </tr>
 
+                `;
 
+            }
 
-fetch("/complaints",
-
-{
-
-
-method:"POST",
-
-
-
-headers:{
-
-
-"Content-Type":"application/json"
-
-
-},
-
-
-
-body:JSON.stringify(data)
-
-
-
-})
-
-
-
-.then(response => response.json())
-
-
-
-.then(result => {
-
-
-
-alert("Complaint Submitted Successfully");
-
-
-
-document.getElementById("complaintForm").reset();
-
-
-
-});
-
-
-
-});
-// ===============================
-// Pie Chart
-// ===============================
-
-
-
-let full = 0;
-
-let medium = 0;
-
-let empty = 0;
-
-
-
-
-
-{% for bin in bins %}
-
-
-
-
-{% if bin.fill_level > 80 %}
-
-
-full++;
-
-
-
-{% elif bin.fill_level > 40 %}
-
-
-medium++;
-
-
-
-{% else %}
-
-
-empty++;
-
-
-
-{% endif %}
-
-
-
-
-{% endfor %}
-
-
-
-
-
-new Chart(
-
-document.getElementById("wasteChart"),
-
-{
-
-
-type:"pie",
-
-
-
-data:{
-
-
-labels:[
-
-"Full",
-
-"Medium",
-
-"Empty"
-
-],
-
-
-
-datasets:[{
-
-
-data:[
-
-full,
-
-medium,
-
-empty
-
-],
-
-
-
-backgroundColor:[
-
-"#E53935",
-
-"#F9A825",
-
-"#43A047"
-
-]
-
-
-}]
-
-
-},
-
-
-
-options:{
-
-
-responsive:true,
-
-
-maintainAspectRatio:false,
-
-
-plugins:{
-
-
-legend:{
-
-
-position:"bottom"
-
+        });
 
 }
 
 
+/* ========================================
+   FIND NEXT COLLECTION PRIORITY
+======================================== */
+
+function loadPriorityBin() {
+
+    fetch("/bins")
+
+        .then(response => response.json())
+
+        .then(bins => {
+
+
+            if (bins.length === 0) {
+
+                document.getElementById(
+                    "priorityBin"
+                ).textContent =
+                    "No bins available";
+
+                return;
+
+            }
+
+
+            /* Sort highest fill first */
+
+            bins.sort(
+                (a, b) =>
+                    b.fill_level -
+                    a.fill_level
+            );
+
+
+            const highestBin =
+                bins[0];
+
+
+            document.getElementById(
+                "priorityBin"
+            ).textContent =
+                highestBin.bin_code
+                + " — "
+                + highestBin.fill_level
+                + "%";
+
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "Priority error:",
+                error
+            );
+
+        });
+
 }
 
 
-}
+/* ========================================
+   INITIAL LOAD
+======================================== */
+
+loadDashboardData();
+
+loadLiveBins();
+
+loadPriorityBin();
 
 
+/* ========================================
+   AUTO REFRESH
+======================================== */
 
-}
-
+setInterval(
+    loadDashboardData,
+    10000
 );
 
 
-
-
-
-
-
-
-
-// ===============================
-// Leaflet Map
-// ===============================
-
-
-let map = L.map('map').setView(
-
-[17.3850,78.4867],
-
-13
-
+setInterval(
+    loadLiveBins,
+    10000
 );
 
 
-
-
-
-L.tileLayer(
-
-'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-
-{
-
-attribution:'© OpenStreetMap'
-
-}
-
-).addTo(map);
-
-
-
-
-
-
-
-
-
-// ===============================
-// Map Markers
-// ===============================
-
-
-
-{% for bin in bins %}
-
-
-
-
-{% if bin.fill_level > 80 %}
-
-
-
-let color{{bin.id}} = "red";
-
-
-
-{% elif bin.fill_level > 40 %}
-
-
-
-let color{{bin.id}} = "orange";
-
-
-
-{% else %}
-
-
-
-let color{{bin.id}} = "green";
-
-
-
-{% endif %}
-
-
-
-
-
-
-L.circleMarker(
-[
-{{bin.latitude}},
-{{bin.longitude}}
-],
-
-
-{
-
-
-radius:10,
-
-
-color:color{{bin.id}},
-
-
-fillColor:color{{bin.id}},
-
-
-fillOpacity:0.8
-
-
-}
-
-)
-
-
-
-.addTo(map)
-
-
-
-.bindPopup(
-`
-
-<b>Bin Code:</b> {{bin.bin_code}}
-
-<br>
-
-<b>Location:</b> {{bin.location}}
-
-<br>
-
-<b>Latitude:</b> {{bin.latitude}}
-
-<br>
-
-<b>Longitude:</b> {{bin.longitude}}
-
-<br>
-
-<b>Fill Level:</b> {{bin.fill_level}}%
-
-<br>
-
-<b>Status:</b> {{bin.status}}
-
-`
+setInterval(
+    loadPriorityBin,
+    10000
 );
-
-{% endfor %}
-
-
-
-
-
-
-
-
-
-// ===============================
-// Map Legend
-// ===============================
-
-
-
-let legend = L.control({
-
-position:"bottomright"
-
-});
-
-
-
-
-
-legend.onAdd=function(map){
-
-
-
-let div = L.DomUtil.create(
-
-"div",
-
-"info legend"
-
-);
-
-
-
-
-div.innerHTML =
-
-
-"<b>Waste Status</b><br>" +
-
-
-"<span style='color:red'>⬤</span> Full Bin (>80%)<br>" +
-
-
-"<span style='color:orange'>⬤</span> Medium Bin (40-80%)<br>" +
-
-
-"<span style='color:green'>⬤</span> Empty Bin (<40%)";
-
-
-
-
-return div;
-
-
-
-};
-
-
-
-
-legend.addTo(map);
-
-
-
-
 
 </script>
 
-
-
-
-</body>
-
-
-</html>uvicorn main:app --reload
+{% endblock %}

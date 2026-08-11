@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart City Waste Management</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="logo">
+
+        <i class="fa-solid fa-recycle"></i>
+
+        Smart Waste
+
+    </div>
+
+    <nav>
+
+        <a href="/">Home</a>
+
+        <a href="/dashboard">Dashboard</a>
+
+        <a href="/map">Live Map</a>
+
+        <a href="/prediction">AI Prediction</a>
+
+        <a href="/complaints-page">Complaints</a>
+
+        <a href="/bins-page">Bin Management</a>
+
+    </nav>
+
+</header>
+
+
+<div class="main-container">
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+</body>
+
+</html>

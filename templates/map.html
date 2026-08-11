@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Waste Management Map</title>
+
+
+    <!-- =====================================================
+         LEAFLET CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+
+    <!-- =====================================================
+         MARKER CLUSTER CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    >
+
+
+    <!-- =====================================================
+         PAGE STYLE
+    ====================================================== -->
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+
+        body {
+
+            background: #f4f7fb;
+
+            color: #1f2937;
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ====================================================== */
+
+        .map-header {
+
+            width: 95%;
+
+            margin: 25px auto 15px auto;
+
+        }
+
+
+        .map-header h2 {
+
+            font-size: 30px;
+
+            font-weight: 700;
+
+            color: #1565C0;
+
+            margin-bottom: 6px;
+
+        }
+
+
+        .map-header p {
+
+            font-size: 16px;
+
+            color: #6b7280;
+
+        }
+
+
+        /* =====================================================
+           SUMMARY CARDS
+        ====================================================== */
+
+        .map-summary {
+
+            width: 95%;
+
+            margin: 20px auto;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+        }
+
+
+        .summary-card {
+
+            background: #ffffff;
+
+            padding: 20px;
+
+            border-radius: 14px;
+
+            border: 1px solid #e5e7eb;
+
+            box-shadow:
+                0 5px 15px rgba(0,0,0,0.07);
+
+        }
+
+
+        .summary-card h4 {
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .summary-card strong {
+
+            font-size: 30px;
+
+            color: #1565C0;
+
+        }
+
+
+        .summary-card.full strong {
+
+            color: #dc3545;
+
+        }
+
+
+        .summary-card.medium strong {
+
+            color: #ff9800;
+
+        }
+
+
+        .summary-card.empty strong {
+
+            color: #28a745;
+
+        }
+
+
+        /* =====================================================
+           LEGEND
+        ====================================================== */
+
+        .legend {
+
+            width: 95%;
+
+            margin: 10px auto;
+
+            padding: 15px 20px;
+
+            background: #ffffff;
+
+            border-radius: 12px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 30px;
+
+            box-shadow:
+                0 4px 12px rgba(0,0,0,0.06);
+
+            border: 1px solid #e5e7eb;
+
+        }
+
+
+        .legend-item {
+
+            display: flex;
+
+            align-items: center;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            color: #374151;
+
+        }
+
+
+        .dot {
+
+            width: 15px;
+
+            height: 15px;
+
+            border-radius: 50%;
+
+            display: inline-block;
+
+            margin-right: 8px;
+
+        }
+
+
+        .red {
+
+            background: #dc3545;
+
+        }
+
+
+        .orange {
+
+            background: #ff9800;
+
+        }
+
+
+        .green {
+
+            background: #28a745;
+
+        }
+
+
+        /* =====================================================
+           MAP
+        ====================================================== */
+
+        #map {
+
+            width: 95%;
+
+            height: 650px;
+
+            margin: 15px auto 35px auto;
+
+            border-radius: 16px;
+
+            border: 1px solid #dfe5ec;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 8px 25px rgba(0,0,0,0.12);
+
+        }
+
+
+        /* =====================================================
+           POPUP
+        ====================================================== */
+
+        .bin-popup {
+
+            min-width: 220px;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+
+        }
+
+
+        .bin-popup-title {
+
+            font-size: 18px;
+
+            font-weight: 700;
+
+            color: #1565C0;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .popup-label {
+
+            font-weight: 600;
+
+            color: #374151;
+
+        }
+
+
+        .popup-full {
+
+            color: #dc3545;
+
+            font-weight: 700;
+
+        }
+
+
+        .popup-medium {
+
+            color: #ff9800;
+
+            font-weight: 700;
+
+        }
+
+
+        .popup-empty {
+
+            color: #28a745;
+
+            font-weight: 700;
+
+        }
+
+
+        /* =====================================================
+           CLUSTER CUSTOMIZATION
+        ====================================================== */
+
+        .marker-cluster {
+
+            background-clip: padding-box;
+
+            border-radius: 50%;
+
+        }
+
+
+        .marker-cluster div {
+
+            font-weight: 700;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 900px) {
+
+            .map-summary {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .map-summary {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .map-header h2 {
+
+                font-size: 24px;
+
+            }
+
+
+            .legend {
+
+                flex-wrap: wrap;
+
+                gap: 15px;
+
+            }
+
+
+            #map {
+
+                height: 500px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     PAGE HEADER
+====================================================== -->
+
+<div class="map-header">
+
+    <h2>
+        🗺 Smart Waste Bin Locations
+    </h2>
+
+    <p>
+        Live geographical monitoring of all registered waste bins
+    </p>
+
+</div>
+
+
+<!-- =====================================================
+     SUMMARY
+====================================================== -->
+
+<div class="map-summary">
+
+
+    <div class="summary-card">
+
+        <h4>
+            Total Bins
+        </h4>
+
+        <strong id="totalBins">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card full">
+
+        <h4>
+            Full Bins
+        </h4>
+
+        <strong id="fullBins">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card medium">
+
+        <h4>
+            Medium Bins
+        </h4>
+
+        <strong id="mediumBins">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card empty">
+
+        <h4>
+            Empty Bins
+        </h4>
+
+        <strong id="emptyBins">
+            0
+        </strong>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     LEGEND
+====================================================== -->
+
+<div class="legend">
+
+
+    <div class="legend-item">
+
+        <span class="dot red"></span>
+
+        FULL
+
+    </div>
+
+
+    <div class="legend-item">
+
+        <span class="dot orange"></span>
+
+        MEDIUM
+
+    </div>
+
+
+    <div class="legend-item">
+
+        <span class="dot green"></span>
+
+        EMPTY
+
+    </div>
+
+
+    <div class="legend-item">
+
+        📍 Click a cluster to view individual bins
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MAP
+====================================================== -->
+
+<div id="map"></div>
+
+
+<!-- =====================================================
+     LEAFLET JS
+====================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<!-- =====================================================
+     MARKER CLUSTER JS
+====================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js">
+</script>
+
+
+<script>
+
+
+/* =====================================================
+   CREATE MAP
+===================================================== */
+
+const map = L.map("map").setView(
+
+    [17.3850, 78.4867],
+
+    13
+
+);
+
+
+/* =====================================================
+   OPEN STREET MAP
+===================================================== */
+
+L.tileLayer(
+
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+    {
+
+        attribution:
+            "&copy; OpenStreetMap contributors"
+
+    }
+
+).addTo(map);
+
+
+/* =====================================================
+   CREATE MARKER CLUSTER GROUP
+===================================================== */
+
+const markerCluster =
+    L.markerClusterGroup({
+
+        /*
+         * Maximum zoom level at which
+         * clustering is active.
+         */
+
+        maxClusterRadius: 50,
+
+
+        /*
+         * Automatically zoom into
+         * clusters when clicked.
+         */
+
+        zoomToBoundsOnClick: true,
+
+
+        /*
+         * IMPORTANT:
+         *
+         * When multiple markers have
+         * EXACTLY the same coordinates,
+         * they will spread around the
+         * location when clicked.
+         */
+
+        spiderfyOnMaxZoom: true,
+
+
+        /*
+         * Animation makes the
+         * spiderfy effect smoother.
+         */
+
+        animate: true,
+
+        animateAddingMarkers: true,
+
+        showCoverageOnHover: false,
+
+        removeOutsideVisibleBounds: true
+
+    });
+
+
+/* =====================================================
+   LOAD ALL BINS
+===================================================== */
+
+fetch("/bins")
+
+
+.then(response => {
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Unable to load bin data"
+        );
+
+    }
+
+    return response.json();
+
+})
+
+
+.then(bins => {
+
+
+    console.log(
+        "Bins received:",
+        bins.length
+    );
+
+
+    /* =================================================
+       COUNTERS
+    ================================================= */
+
+    let fullCount = 0;
+
+    let mediumCount = 0;
+
+    let emptyCount = 0;
+
+
+    /* =================================================
+       PROCESS EVERY BIN
+    ================================================= */
+
+    bins.forEach(function(bin) {
+
+
+        /* =============================================
+           STATUS COUNT
+        ============================================= */
+
+        if (bin.status === "FULL") {
+
+            fullCount++;
+
+        }
+
+        else if (bin.status === "MEDIUM") {
+
+            mediumCount++;
+
+        }
+
+        else {
+
+            emptyCount++;
+
+        }
+
+
+        /* =============================================
+           CHECK COORDINATES
+        ============================================= */
+
+        if (
+
+            bin.latitude === null ||
+
+            bin.longitude === null ||
+
+            bin.latitude === undefined ||
+
+            bin.longitude === undefined
+
+        ) {
+
+            console.warn(
+
+                "Skipping bin without coordinates:",
+
+                bin.bin_code
+
+            );
+
+            return;
+
+        }
+
+
+        /* =============================================
+           SELECT COLOR
+        ============================================= */
+
+        let markerColor = "#28a745";
+
+        let statusClass = "popup-empty";
+
+
+        if (bin.status === "FULL") {
+
+            markerColor = "#dc3545";
+
+            statusClass = "popup-full";
+
+        }
+
+        else if (bin.status === "MEDIUM") {
+
+            markerColor = "#ff9800";
+
+            statusClass = "popup-medium";
+
+        }
+
+
+        /* =============================================
+           CREATE MARKER
+        ============================================= */
+
+        const marker = L.circleMarker(
+
+            [
+
+                Number(bin.latitude),
+
+                Number(bin.longitude)
+
+            ],
+
+            {
+
+                radius: 11,
+
+                color: "#ffffff",
+
+                weight: 2,
+
+                fillColor: markerColor,
+
+                fillOpacity: 0.95
+
+            }
+
+        );
+
+
+        /* =============================================
+           POPUP
+        ============================================= */
+
+        marker.bindPopup(`
+
+            <div class="bin-popup">
+
+                <div class="bin-popup-title">
+
+                    ${bin.bin_code}
+
+                </div>
+
+
+                <span class="popup-label">
+                    Location:
+                </span>
+
+                ${bin.location}
+
+                <br>
+
+
+                <span class="popup-label">
+                    Fill Level:
+                </span>
+
+                ${bin.fill_level}%
+
+                <br>
+
+
+                <span class="popup-label">
+                    Status:
+                </span>
+
+                <span class="${statusClass}">
+
+                    ${bin.status}
+
+                </span>
+
+            </div>
+
+        `);
+
+
+        /* =============================================
+           ADD MARKER TO CLUSTER
+        ============================================= */
+
+        markerCluster.addLayer(marker);
+
+
+    });
+
+
+    /* =================================================
+       ADD CLUSTER TO MAP
+    ================================================= */
+
+    map.addLayer(markerCluster);
+
+
+    /* =================================================
+       UPDATE SUMMARY
+    ================================================= */
+
+    document.getElementById(
+        "totalBins"
+    ).innerText = bins.length;
+
+
+    document.getElementById(
+        "fullBins"
+    ).innerText = fullCount;
+
+
+    document.getElementById(
+        "mediumBins"
+    ).innerText = mediumCount;
+
+
+    document.getElementById(
+        "emptyBins"
+    ).innerText = emptyCount;
+
+
+    /* =================================================
+       FIT MAP TO ALL BINS
+    ================================================= */
+
+    const validBins = bins.filter(
+
+        bin =>
+
+            bin.latitude !== null &&
+
+            bin.longitude !== null &&
+
+            bin.latitude !== undefined &&
+
+            bin.longitude !== undefined
+
+    );
+
+
+    if (validBins.length > 0) {
+
+
+        const bounds = L.latLngBounds(
+
+            validBins.map(
+
+                bin => [
+
+                    Number(bin.latitude),
+
+                    Number(bin.longitude)
+
+                ]
+
+            )
+
+        );
+
+
+        map.fitBounds(
+
+            bounds,
+
+            {
+
+                padding: [50, 50]
+
+            }
+
+        );
+
+    }
+
+
+})
+
+
+.catch(error => {
+
+    console.error(
+
+        "Error loading bins:",
+
+        error
+
+    );
+
+});
+
+
+</script>
+
+
+</body>
+
+</html>
+# =========================================================
+# MAP PAGE
+# =========================================================
+
+@app.get("/map")
+def map_page(request: Request):
+
+    return templates.TemplateResponse(
+        "map.html",
+        {
+            "request": request
+        }
+    )

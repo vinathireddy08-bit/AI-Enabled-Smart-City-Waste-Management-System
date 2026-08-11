@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="complaints-page">
+
+```
+<!-- =====================================================
+     PAGE HEADER
+====================================================== -->
+
+<div class="complaints-page-header">
+
+    <div>
+        <h2>Complaint Management</h2>
+
+        <p>
+            Report waste management issues and track complaint status
+        </p>
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     SUBMIT COMPLAINT CARD
+====================================================== -->
+
+<div class="complaint-container">
+
+    <div class="complaint-section-header">
+
+        <div>
+            <h3>Submit a Complaint</h3>
+
+            <p>
+                Report overflowing bins, missed collections,
+                damaged bins, or other waste-related issues.
+            </p>
+        </div>
+
+    </div>
+
+
+    <form action="/complaints" method="post" class="complaint-form">
+
+        <!-- NAME -->
+
+        <div class="complaint-form-group">
+
+            <label for="name">
+                Name
+            </label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Enter your name"
+                required
+            >
+
+        </div>
+
+
+        <!-- LOCATION -->
+
+        <div class="complaint-form-group">
+
+            <label for="location">
+                Location
+            </label>
+
+            <input
+                type="text"
+                id="location"
+                name="location"
+                placeholder="Enter complaint location"
+                required
+            >
+
+        </div>
+
+
+        <!-- COMPLAINT TYPE -->
+
+        <div class="complaint-form-group">
+
+            <label for="complaint_type">
+                Complaint Type
+            </label>
+
+            <select
+                id="complaint_type"
+                name="complaint_type"
+                required
+            >
+
+                <option value="">
+                    Select complaint type
+                </option>
+
+                <option value="Overflowing Bin">
+                    Overflowing Bin
+                </option>
+
+                <option value="Missed Collection">
+                    Missed Collection
+                </option>
+
+                <option value="Damaged Bin">
+                    Damaged Bin
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="complaint-form-group">
+
+            <label for="description">
+                Description
+            </label>
+
+            <textarea
+                id="description"
+                name="description"
+                placeholder="Describe the issue in detail..."
+                required
+            ></textarea>
+
+        </div>
+
+
+        <!-- SUBMIT -->
+
+        <div class="complaint-submit-area">
+
+            <button
+                type="submit"
+                class="complaint-submit-btn"
+            >
+                Submit Complaint
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =====================================================
+     COMPLAINT STATUS CARD
+====================================================== -->
+
+<div class="complaint-status-card">
+
+    <div class="complaint-section-header">
+
+        <div>
+
+            <h3>Complaint Status</h3>
+
+            <p>
+                View submitted complaints and their current status.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="complaint-table-wrapper">
+
+        <table class="complaint-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Name</th>
+
+                    <th>Location</th>
+
+                    <th>Complaint Type</th>
+
+                    <th>Description</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="complaintTable">
+
+                <!-- Data loaded using JavaScript -->
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+<!-- =========================================================
+     LOAD COMPLAINTS
+========================================================= -->
+
+<script>
+
+function loadComplaints() {
+
+    fetch("/complaints")
+
+        .then(response => response.json())
+
+        .then(data => {
+
+            let table = "";
+
+            if (!data || data.length === 0) {
+
+                table = `
+                    <tr>
+                        <td colspan="6"
+                            class="no-complaints">
+                            No complaints submitted yet.
+                        </td>
+                    </tr>
+                `;
+
+            } else {
+
+                data.forEach(c => {
+
+                    let statusClass = "pending";
+
+                    if (
+                        c.status &&
+                        c.status.toLowerCase() === "resolved"
+                    ) {
+
+                        statusClass = "resolved";
+
+                    } else if (
+                        c.status &&
+                        c.status.toLowerCase() === "in progress"
+                    ) {
+
+                        statusClass = "progress";
+
+                    }
+
+
+                    table += `
+
+                        <tr>
+
+                            <td>
+                                ${c.id}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    ${c.name}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${c.location}
+                            </td>
+
+                            <td>
+                                ${c.complaint_type}
+                            </td>
+
+                            <td class="description-cell">
+                                ${c.description}
+                            </td>
+
+                            <td>
+
+                                <span class="complaint-status ${statusClass}">
+                                    ${c.status}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                });
+
+            }
+
+
+            document.getElementById(
+                "complaintTable"
+            ).innerHTML = table;
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Error loading complaints:",
+                error
+            );
+
+        });
+
+}
+
+
+/* Load complaints when page opens */
+
+loadComplaints();
+
+</script>
+
+{% endblock %}
+

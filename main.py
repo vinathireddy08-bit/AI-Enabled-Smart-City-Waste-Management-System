@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, Form
+from fastapi import FastAPI, Depends, Request, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -24,42 +24,46 @@ Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-if db.query(WasteBin).count() == 0:
+try:
 
-    bins = [
+    if db.query(WasteBin).count() == 0:
 
-        WasteBin(
-            bin_code="BIN001",
-            location="Market Road",
-            latitude=17.3850,
-            longitude=78.4867,
-            fill_level=90,
-            status="FULL"
-        ),
+        bins = [
 
-        WasteBin(
-            bin_code="BIN002",
-            location="City Park",
-            latitude=17.3902,
-            longitude=78.4912,
-            fill_level=55,
-            status="MEDIUM"
-        ),
+            WasteBin(
+                bin_code="BIN001",
+                location="Market Road",
+                latitude=17.3850,
+                longitude=78.4867,
+                fill_level=90,
+                status="FULL"
+            ),
 
-        WasteBin(
-            bin_code="BIN003",
-            location="Bus Stand",
-            latitude=17.3815,
-            longitude=78.4804,
-            fill_level=20,
-            status="EMPTY"
-        )
-    ]
+            WasteBin(
+                bin_code="BIN002",
+                location="City Park",
+                latitude=17.3902,
+                longitude=78.4912,
+                fill_level=55,
+                status="MEDIUM"
+            ),
 
-    db.add_all(bins)
-    db.commit()
+            WasteBin(
+                bin_code="BIN003",
+                location="Bus Stand",
+                latitude=17.3815,
+                longitude=78.4804,
+                fill_level=20,
+                status="EMPTY"
+            )
+        ]
 
-db.close()
+        db.add_all(bins)
+        db.commit()
+
+finally:
+
+    db.close()
 
 
 # =========================================================
@@ -81,6 +85,11 @@ app.mount(
     name="static"
 )
 
+
+# =========================================================
+# TEMPLATES
+# =========================================================
+
 templates = Jinja2Templates(
     directory="templates"
 )
@@ -95,25 +104,28 @@ def get_db():
     db = SessionLocal()
 
     try:
+
         yield db
 
     finally:
+
         db.close()
 
 
-
-
-# ===============================
-# Home
-# ===============================
+# =========================================================
+# HOME PAGE
+# =========================================================
 
 @app.get("/")
 def home(request: Request):
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={}
     )
+
+
 # =========================================================
 # GET ALL WASTE BINS
 # =========================================================
@@ -168,11 +180,17 @@ def api_bins(
 
 @app.post("/bins")
 def create_bin(
+
     bin_code: str,
+
     location: str,
+
     fill_level: int,
+
     status: str = "",
+
     db: Session = Depends(get_db)
+
 ):
 
     # =====================================================
@@ -185,9 +203,22 @@ def create_bin(
 
     if existing_bin:
 
-        return {
-            "error": "Bin code already exists"
-        }
+        raise HTTPException(
+            status_code=400,
+            detail="Bin code already exists"
+        )
+
+
+    # =====================================================
+    # VALIDATE FILL LEVEL
+    # =====================================================
+
+    if fill_level < 0 or fill_level > 100:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Fill level must be between 0 and 100"
+        )
 
 
     # =====================================================
@@ -328,7 +359,9 @@ def create_bin(
 
 @app.post("/bins/update-existing-locations")
 def update_existing_bin_locations(
+
     db: Session = Depends(get_db)
+
 ):
 
     location_coordinates = {
@@ -412,8 +445,11 @@ def update_existing_bin_locations(
 
 @app.get("/dashboard")
 def dashboard(
+
     request: Request,
+
     db: Session = Depends(get_db)
+
 ):
 
     bins = db.query(WasteBin).all()
@@ -421,7 +457,9 @@ def dashboard(
     total_bins = len(bins)
 
     full_bins = 0
+
     medium_bins = 0
+
     empty_bins = 0
 
     total_fill = 0
@@ -432,6 +470,7 @@ def dashboard(
         fill = bin.fill_level or 0
 
         total_fill += fill
+
 
         if fill >= 80:
 
@@ -448,6 +487,7 @@ def dashboard(
 
     average_fill = 0
 
+
     if total_bins > 0:
 
         average_fill = round(
@@ -457,9 +497,12 @@ def dashboard(
 
 
     return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
+
+        request=request,
+
+        name="dashboard.html",
+
+        context={
 
             "total_bins": total_bins,
 
@@ -470,7 +513,9 @@ def dashboard(
             "empty_bins": empty_bins,
 
             "average_fill": average_fill
+
         }
+
     )
 
 
@@ -480,7 +525,9 @@ def dashboard(
 
 @app.get("/dashboard-data")
 def dashboard_data(
+
     db: Session = Depends(get_db)
+
 ):
 
     bins = db.query(WasteBin).all()
@@ -488,7 +535,9 @@ def dashboard_data(
     total_bins = len(bins)
 
     full_bins = 0
+
     medium_bins = 0
+
     empty_bins = 0
 
     total_fill = 0
@@ -533,19 +582,32 @@ def dashboard_data(
 
     average_fill = 0
 
+
     if total_bins > 0:
 
         average_fill = round(
+
             total_fill / total_bins,
+
             2
+
         )
 
+
+    # =====================================================
+    # HIGH FILL BINS
+    # =====================================================
 
     high_fill_bins = sorted(
 
         [
-            bin for bin in bins
-            if (bin.fill_level or 0) > 75
+
+            bin
+
+            for bin in bins
+
+            if (bin.fill_level or 0) >= 80
+
         ],
 
         key=lambda x: x.fill_level or 0,
@@ -600,10 +662,13 @@ def dashboard_data(
 def map_page(request: Request):
 
     return templates.TemplateResponse(
-        "map.html",
-        {
-            "request": request
-        }
+
+        request=request,
+
+        name="map.html",
+
+        context={}
+
     )
 
 
@@ -615,10 +680,13 @@ def map_page(request: Request):
 def complaints_page(request: Request):
 
     return templates.TemplateResponse(
-        "complaints.html",
-        {
-            "request": request
-        }
+
+        request=request,
+
+        name="complaints.html",
+
+        context={}
+
     )
 
 
@@ -630,10 +698,13 @@ def complaints_page(request: Request):
 def prediction_page(request: Request):
 
     return templates.TemplateResponse(
-        "ai_prediction.html",
-        {
-            "request": request
-        }
+
+        request=request,
+
+        name="ai_prediction.html",
+
+        context={}
+
     )
 
 
@@ -645,10 +716,13 @@ def prediction_page(request: Request):
 def bins_page(request: Request):
 
     return templates.TemplateResponse(
-        "waste_bins.html",
-        {
-            "request": request
-        }
+
+        request=request,
+
+        name="waste_bins.html",
+
+        context={}
+
     )
 
 
@@ -658,11 +732,15 @@ def bins_page(request: Request):
 
 @app.get("/ai/bins")
 def ai_bins(
+
     db: Session = Depends(get_db)
+
 ):
 
     bins = db.query(WasteBin).order_by(
+
         WasteBin.id
+
     ).all()
 
 
@@ -693,26 +771,35 @@ def ai_bins(
 
 @app.get("/ai/predict/{bin_id}")
 def ai_prediction(
+
     bin_id: int,
+
     db: Session = Depends(get_db)
+
 ):
 
     bin_data = db.query(WasteBin).filter(
+
         WasteBin.id == bin_id
+
     ).first()
 
 
     if bin_data is None:
 
-        return {
+        raise HTTPException(
 
-            "error": "Bin not found"
+            status_code=404,
 
-        }
+            detail="Bin not found"
+
+        )
 
 
     predicted = predict_fill_level(
+
         bin_data.fill_level
+
     )
 
 
@@ -819,4 +906,3 @@ def get_complaints(
 ):
 
     return db.query(Complaint).all()
-

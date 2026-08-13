@@ -4,7 +4,6 @@
 
 <div class="dashboard-container">
 
-
     <!-- =====================================================
          PAGE HEADER
     ====================================================== -->
@@ -12,15 +11,11 @@
     <div class="dashboard-header">
 
         <div>
-
-            <h1>
-                Smart Waste Management Dashboard
-            </h1>
+            <h1>Smart Waste Management Dashboard</h1>
 
             <p>
                 AI Enabled IoT Waste Monitoring System
             </p>
-
         </div>
 
     </div>
@@ -32,14 +27,10 @@
 
     <div class="dashboard-cards">
 
-
         <!-- TOTAL BINS -->
-
         <div class="stat-card">
 
-            <h4>
-                Total Bins
-            </h4>
+            <h4>Total Bins</h4>
 
             <h2 id="totalBins">
                 0
@@ -53,12 +44,9 @@
 
 
         <!-- FULL BINS -->
-
         <div class="stat-card danger">
 
-            <h4>
-                Full Bins
-            </h4>
+            <h4>Full Bins</h4>
 
             <h2 id="fullBins">
                 0
@@ -72,12 +60,9 @@
 
 
         <!-- AVERAGE FILL -->
-
         <div class="stat-card warning">
 
-            <h4>
-                Average Fill
-            </h4>
+            <h4>Average Fill</h4>
 
             <h2 id="averageFill">
                 0%
@@ -91,12 +76,9 @@
 
 
         <!-- ALERTS -->
-
         <div class="stat-card success">
 
-            <h4>
-                Alerts
-            </h4>
+            <h4>Alerts</h4>
 
             <h2 id="alertCount">
                 0
@@ -110,12 +92,9 @@
 
 
         <!-- ACTIVE COMPLAINTS -->
-
         <div class="stat-card danger">
 
-            <h4>
-                Active Complaints
-            </h4>
+            <h4>Active Complaints</h4>
 
             <h2 id="complaintCount">
                 0
@@ -127,7 +106,6 @@
 
         </div>
 
-
     </div>
 
 
@@ -136,7 +114,6 @@
     ====================================================== -->
 
     <div class="charts-container">
-
 
         <!-- HIGH FILL BINS -->
 
@@ -311,33 +288,19 @@
 
                     <tr>
 
-                        <th>
-                            ID
-                        </th>
+                        <th>ID</th>
 
-                        <th>
-                            Name
-                        </th>
+                        <th>Name</th>
 
-                        <th>
-                            Location
-                        </th>
+                        <th>Location</th>
 
-                        <th>
-                            Nearest Bin
-                        </th>
+                        <th>Nearest Bin</th>
 
-                        <th>
-                            Complaint Type
-                        </th>
+                        <th>Complaint Type</th>
 
-                        <th>
-                            Description
-                        </th>
+                        <th>Description</th>
 
-                        <th>
-                            Status
-                        </th>
+                        <th>Status</th>
 
                     </tr>
 
@@ -352,9 +315,7 @@
                             colspan="7"
                             style="text-align:center;"
                         >
-
                             Loading complaints...
-
                         </td>
 
                     </tr>
@@ -366,7 +327,6 @@
         </div>
 
     </div>
-
 
 </div>
 
@@ -385,7 +345,6 @@
 ========================================================= */
 
 let barChart = null;
-
 let pieChart = null;
 
 
@@ -402,7 +361,8 @@ function loadDashboardData() {
             if (!response.ok) {
 
                 throw new Error(
-                    "Dashboard API failed"
+                    "Dashboard API failed: "
+                    + response.status
                 );
 
             }
@@ -426,34 +386,43 @@ function loadDashboardData() {
             document.getElementById(
                 "totalBins"
             ).textContent =
-                data.total_bins || 0;
+                data.total_bins ?? 0;
 
 
             document.getElementById(
                 "fullBins"
             ).textContent =
-                data.full_bins || 0;
+                data.full_bins ?? 0;
 
 
             document.getElementById(
                 "averageFill"
             ).textContent =
-                (data.average_fill || 0)
+                (data.average_fill ?? 0)
                 + "%";
 
 
             /* =================================================
                ACTIVE COMPLAINTS
+               
+               Backend returns:
+               active_complaints
             ================================================= */
 
             document.getElementById(
                 "complaintCount"
             ).textContent =
-                data.complaint_count || 0;
+                data.active_complaints ?? 0;
 
 
             /* =================================================
                ALERT COUNT
+               
+               High fill bins are bins above 75%.
+               
+               Backend currently provides:
+               top_labels
+               top_fill_levels
             ================================================= */
 
             let alertCount = 0;
@@ -469,7 +438,7 @@ function loadDashboardData() {
             }
 
             else if (
-                data.top_labels
+                Array.isArray(data.top_labels)
             ) {
 
                 alertCount =
@@ -488,109 +457,120 @@ function loadDashboardData() {
                BAR CHART
             ================================================= */
 
-            if (barChart === null) {
-
-                const bar =
-                    document.getElementById(
-                        "barChart"
-                    );
+            const topLabels =
+                Array.isArray(data.top_labels)
+                    ? data.top_labels
+                    : [];
 
 
-                barChart = new Chart(
+            const topFillLevels =
+                Array.isArray(data.top_fill_levels)
+                    ? data.top_fill_levels
+                    : [];
 
-                    bar,
 
-                    {
+            const bar =
+                document.getElementById(
+                    "barChart"
+                );
 
-                        type: "bar",
 
-                        data: {
+            if (bar) {
 
-                            labels:
-                                data.top_labels || [],
+                if (barChart === null) {
 
-                            datasets: [
+                    barChart = new Chart(
 
-                                {
+                        bar,
 
-                                    label:
-                                        "Fill Level (%)",
+                        {
 
-                                    data:
-                                        data.top_fill_levels || [],
+                            type: "bar",
 
-                                    backgroundColor:
-                                        (
-                                            data.top_fill_levels
-                                            || []
-                                        ).map(
+                            data: {
 
-                                            value => {
+                                labels:
+                                    topLabels,
 
-                                                if (
-                                                    value >= 90
-                                                ) {
+                                datasets: [
 
-                                                    return "#dc3545";
+                                    {
+
+                                        label:
+                                            "Fill Level (%)",
+
+                                        data:
+                                            topFillLevels,
+
+                                        backgroundColor:
+                                            topFillLevels.map(
+                                                value => {
+
+                                                    if (
+                                                        value >= 90
+                                                    ) {
+
+                                                        return "#dc3545";
+
+                                                    }
+
+                                                    return "#ff9800";
 
                                                 }
+                                            ),
 
-                                                return "#ff9800";
+                                        borderRadius: 6
 
-                                            }
+                                    }
 
-                                        ),
-
-                                    borderRadius: 6
-
-                                }
-
-                            ]
-
-                        },
-
-
-                        options: {
-
-                            responsive: true,
-
-                            maintainAspectRatio: false,
-
-                            plugins: {
-
-                                legend: {
-
-                                    display: false
-
-                                }
+                                ]
 
                             },
 
 
-                            scales: {
+                            options: {
 
-                                x: {
+                                responsive: true,
 
-                                    ticks: {
+                                maintainAspectRatio: false,
 
-                                        maxRotation: 45,
+                                plugins: {
 
-                                        minRotation: 0
+                                    legend: {
+
+                                        display: false
 
                                     }
 
                                 },
 
 
-                                y: {
+                                scales: {
 
-                                    beginAtZero: true,
+                                    x: {
 
-                                    max: 100,
+                                        ticks: {
 
-                                    ticks: {
+                                            maxRotation: 45,
 
-                                        stepSize: 20
+                                            minRotation: 0
+
+                                        }
+
+                                    },
+
+
+                                    y: {
+
+                                        beginAtZero: true,
+
+                                        max: 100,
+
+                                        ticks: {
+
+                                            stepSize: 20
+
+                                        }
 
                                     }
 
@@ -600,47 +580,41 @@ function loadDashboardData() {
 
                         }
 
-                    }
-
-                );
-
-            }
-
-
-            else {
-
-                barChart.data.labels =
-                    data.top_labels || [];
-
-
-                barChart.data.datasets[0].data =
-                    data.top_fill_levels || [];
-
-
-                barChart.data.datasets[0].backgroundColor =
-                    (
-                        data.top_fill_levels
-                        || []
-                    ).map(
-
-                        value => {
-
-                            if (
-                                value >= 90
-                            ) {
-
-                                return "#dc3545";
-
-                            }
-
-                            return "#ff9800";
-
-                        }
-
                     );
 
+                }
 
-                barChart.update();
+                else {
+
+                    barChart.data.labels =
+                        topLabels;
+
+
+                    barChart.data.datasets[0].data =
+                        topFillLevels;
+
+
+                    barChart.data.datasets[0].backgroundColor =
+                        topFillLevels.map(
+                            value => {
+
+                                if (
+                                    value >= 90
+                                ) {
+
+                                    return "#dc3545";
+
+                                }
+
+                                return "#ff9800";
+
+                            }
+                        );
+
+
+                    barChart.update();
+
+                }
 
             }
 
@@ -653,82 +627,88 @@ function loadDashboardData() {
                 data.status || {};
 
 
-            if (pieChart === null) {
+            const statusData = [
 
-                const pie =
-                    document.getElementById(
-                        "pieChart"
-                    );
+                status.FULL ?? 0,
 
+                status.MEDIUM ?? 0,
 
-                pieChart = new Chart(
+                status.EMPTY ?? 0
 
-                    pie,
-
-                    {
-
-                        type: "doughnut",
-
-                        data: {
-
-                            labels: [
-
-                                "FULL",
-
-                                "MEDIUM",
-
-                                "EMPTY"
-
-                            ],
+            ];
 
 
-                            datasets: [
-
-                                {
-
-                                    data: [
-
-                                        status.FULL || 0,
-
-                                        status.MEDIUM || 0,
-
-                                        status.EMPTY || 0
-
-                                    ],
+            const pie =
+                document.getElementById(
+                    "pieChart"
+                );
 
 
-                                    backgroundColor: [
+            if (pie) {
 
-                                        "#dc3545",
+                if (pieChart === null) {
 
-                                        "#ff9800",
+                    pieChart = new Chart(
 
-                                        "#28a745"
+                        pie,
 
-                                    ],
+                        {
+
+                            type: "doughnut",
+
+                            data: {
+
+                                labels: [
+
+                                    "FULL",
+
+                                    "MEDIUM",
+
+                                    "EMPTY"
+
+                                ],
 
 
-                                    borderWidth: 2
+                                datasets: [
 
-                                }
+                                    {
 
-                            ]
+                                        data:
+                                            statusData,
 
-                        },
+                                        backgroundColor: [
+
+                                            "#dc3545",
+
+                                            "#ff9800",
+
+                                            "#28a745"
+
+                                        ],
+
+                                        borderWidth: 2
+
+                                    }
+
+                                ]
+
+                            },
 
 
-                        options: {
+                            options: {
 
-                            responsive: true,
+                                responsive: true,
 
-                            maintainAspectRatio: false,
+                                maintainAspectRatio: false,
 
-                            plugins: {
+                                plugins: {
 
-                                legend: {
+                                    legend: {
 
-                                    position:
-                                        "bottom"
+                                        position:
+                                            "bottom"
+
+                                    }
 
                                 }
 
@@ -736,27 +716,18 @@ function loadDashboardData() {
 
                         }
 
-                    }
+                    );
 
-                );
+                }
 
-            }
+                else {
 
+                    pieChart.data.datasets[0].data =
+                        statusData;
 
-            else {
+                    pieChart.update();
 
-                pieChart.data.datasets[0].data = [
-
-                    status.FULL || 0,
-
-                    status.MEDIUM || 0,
-
-                    status.EMPTY || 0
-
-                ];
-
-
-                pieChart.update();
+                }
 
             }
 
@@ -777,18 +748,22 @@ function loadDashboardData() {
 
 /* =========================================================
    LOAD ALL LIVE BINS
+
+   IMPORTANT:
+   Correct endpoint is /api/bins
 ========================================================= */
 
 function loadLiveBins() {
 
-    fetch("/bins")
+    fetch("/api/bins")
 
         .then(response => {
 
             if (!response.ok) {
 
                 throw new Error(
-                    "Bins API failed"
+                    "Bins API failed: "
+                    + response.status
                 );
 
             }
@@ -823,7 +798,7 @@ function loadLiveBins() {
 
 
             if (
-                !bins ||
+                !Array.isArray(bins) ||
                 bins.length === 0
             ) {
 
@@ -850,7 +825,6 @@ function loadLiveBins() {
 
 
             bins.forEach(bin => {
-
 
                 let statusClass =
                     "empty";
@@ -880,16 +854,12 @@ function loadLiveBins() {
                     <tr>
 
                         <td>
-
-                            ${bin.bin_code}
-
+                            ${bin.bin_code ?? "-"}
                         </td>
 
 
                         <td>
-
-                            ${bin.location}
-
+                            ${bin.location ?? "-"}
                         </td>
 
 
@@ -902,11 +872,11 @@ function loadLiveBins() {
                                 <div
                                     class="progress-bar"
                                     style="
-                                        width:${bin.fill_level}%
+                                        width:${bin.fill_level ?? 0}%;
                                     "
                                 >
 
-                                    ${bin.fill_level}%
+                                    ${bin.fill_level ?? 0}%
 
                                 </div>
 
@@ -924,7 +894,7 @@ function loadLiveBins() {
                                 "
                             >
 
-                                ${bin.status}
+                                ${bin.status ?? "UNKNOWN"}
 
                             </span>
 
@@ -964,6 +934,7 @@ function loadLiveBins() {
                             style="
                                 text-align:center;
                                 color:red;
+                                padding:20px;
                             "
                         >
 
@@ -995,7 +966,8 @@ function loadDashboardComplaints() {
             if (!response.ok) {
 
                 throw new Error(
-                    "Dashboard complaint API failed"
+                    "Dashboard complaint API failed: "
+                    + response.status
                 );
 
             }
@@ -1022,8 +994,18 @@ function loadDashboardComplaints() {
             table.innerHTML = "";
 
 
+            /*
+                Your current /dashboard-data response
+                does not contain a complaints array.
+
+                Therefore, show "No active complaints"
+                when complaints are not returned.
+            */
+
             const complaints =
-                data.complaints || [];
+                Array.isArray(data.complaints)
+                    ? data.complaints
+                    : [];
 
 
             if (
@@ -1058,12 +1040,12 @@ function loadDashboardComplaints() {
             complaints.forEach(
                 complaint => {
 
-
                     let statusClass =
                         "pending";
 
 
                     if (
+                        complaint.status &&
                         complaint.status
                             .toLowerCase()
                             === "in progress"
@@ -1075,39 +1057,58 @@ function loadDashboardComplaints() {
                     }
 
 
+                    else if (
+                        complaint.status &&
+                        (
+                            complaint.status
+                                .toLowerCase()
+                                === "resolved"
+                            ||
+                            complaint.status
+                                .toLowerCase()
+                                === "collected"
+                        )
+                    ) {
+
+                        statusClass =
+                            "resolved";
+
+                    }
+
+
                     table.innerHTML += `
 
                         <tr>
 
                             <td>
-                                ${complaint.id}
+                                ${complaint.id ?? "-"}
                             </td>
 
                             <td>
 
                                 <strong>
-                                    ${complaint.name}
+                                    ${complaint.name ?? "-"}
                                 </strong>
 
                             </td>
 
                             <td>
-                                ${complaint.location}
+                                ${complaint.location ?? "-"}
                             </td>
 
                             <td>
-                                ${complaint.bin_code}
+                                ${complaint.bin_code ?? "-"}
                             </td>
 
                             <td>
-                                ${complaint.complaint_type}
+                                ${complaint.complaint_type ?? "-"}
                             </td>
 
                             <td
                                 class="description-cell"
                             >
 
-                                ${complaint.description}
+                                ${complaint.description ?? "-"}
 
                             </td>
 
@@ -1120,7 +1121,7 @@ function loadDashboardComplaints() {
                                     "
                                 >
 
-                                    ${complaint.status}
+                                    ${complaint.status ?? "Pending"}
 
                                 </span>
 
@@ -1135,12 +1136,45 @@ function loadDashboardComplaints() {
 
         })
 
+
         .catch(error => {
 
             console.error(
                 "Dashboard complaints error:",
                 error
             );
+
+
+            const table =
+                document.getElementById(
+                    "dashboardComplaintTable"
+                );
+
+
+            if (table) {
+
+                table.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            style="
+                                text-align:center;
+                                color:red;
+                                padding:20px;
+                            "
+                        >
+
+                            Unable to load complaints
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
 
         });
 
@@ -1149,27 +1183,51 @@ function loadDashboardComplaints() {
 
 /* =========================================================
    FIND NEXT COLLECTION PRIORITY
+
+   IMPORTANT:
+   Correct endpoint is /api/bins
 ========================================================= */
 
 function loadPriorityBin() {
 
-    fetch("/bins")
+    fetch("/api/bins")
 
-        .then(response =>
-            response.json()
-        )
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Priority bins API failed: "
+                    + response.status
+                );
+
+            }
+
+            return response.json();
+
+        })
 
         .then(bins => {
 
+            const priorityElement =
+                document.getElementById(
+                    "priorityBin"
+                );
+
+
+            if (!priorityElement) {
+
+                return;
+
+            }
+
 
             if (
-                !bins ||
+                !Array.isArray(bins) ||
                 bins.length === 0
             ) {
 
-                document.getElementById(
-                    "priorityBin"
-                ).textContent =
+                priorityElement.textContent =
                     "No bins available";
 
                 return;
@@ -1177,26 +1235,29 @@ function loadPriorityBin() {
             }
 
 
-            bins.sort(
+            /*
+                Create a copy before sorting.
+                This prevents modifying the original
+                API array unnecessarily.
+            */
 
-                (a, b) =>
-                    b.fill_level -
-                    a.fill_level
-
-            );
+            const sortedBins =
+                [...bins].sort(
+                    (a, b) =>
+                        (b.fill_level ?? 0) -
+                        (a.fill_level ?? 0)
+                );
 
 
             const highestBin =
-                bins[0];
+                sortedBins[0];
 
 
-            document.getElementById(
-                "priorityBin"
-            ).textContent =
+            priorityElement.textContent =
 
-                highestBin.bin_code
+                (highestBin.bin_code ?? "Unknown")
                 + " — "
-                + highestBin.fill_level
+                + (highestBin.fill_level ?? 0)
                 + "%";
 
         })
@@ -1208,6 +1269,20 @@ function loadPriorityBin() {
                 "Priority error:",
                 error
             );
+
+
+            const priorityElement =
+                document.getElementById(
+                    "priorityBin"
+                );
+
+
+            if (priorityElement) {
+
+                priorityElement.textContent =
+                    "Unable to load";
+
+            }
 
         });
 

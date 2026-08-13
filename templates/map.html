@@ -976,16 +976,3 @@ fetch("/bins")
 </body>
 
 </html>
-# =========================================================
-# MAP PAGE
-# =========================================================
-
-@app.get("/map")
-def map_page(request: Request):
-
-    return templates.TemplateResponse(
-        "map.html",
-        {
-            "request": request
-        }
-    )

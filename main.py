@@ -3,6 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from sqlalchemy.orm import Session
+from sqlalchemy import text
+
 from pydantic import BaseModel
 
 from datetime import datetime
@@ -19,6 +21,86 @@ from ai.prediction import predict_fill_level
 # =========================================================
 
 Base.metadata.create_all(bind=engine)
+
+
+# =========================================================
+# DATABASE MIGRATION
+# =========================================================
+# Render already has an older complaints table.
+# SQLAlchemy create_all() does NOT add new columns to an
+# existing table.
+#
+# This migration safely adds missing columns without
+# deleting existing bins or complaints.
+# =========================================================
+
+def migrate_complaints_table():
+
+    try:
+
+        with engine.begin() as connection:
+
+            # Get existing columns
+            result = connection.execute(
+                text("PRAGMA table_info(complaints)")
+            )
+
+            existing_columns = {
+                row[1]
+                for row in result
+            }
+
+            print(
+                "Existing Complaint columns:",
+                existing_columns
+            )
+
+            # Required columns
+            required_columns = {
+
+                "latitude":
+                    "ALTER TABLE complaints ADD COLUMN latitude FLOAT",
+
+                "longitude":
+                    "ALTER TABLE complaints ADD COLUMN longitude FLOAT",
+
+                "bin_id":
+                    "ALTER TABLE complaints ADD COLUMN bin_id INTEGER",
+
+                "collection_time":
+                    "ALTER TABLE complaints ADD COLUMN collection_time DATETIME"
+
+            }
+
+            # Add only missing columns
+            for column_name, sql in required_columns.items():
+
+                if column_name not in existing_columns:
+
+                    print(
+                        f"Adding missing column: {column_name}"
+                    )
+
+                    connection.execute(
+                        text(sql)
+                    )
+
+            print(
+                "Complaint table migration completed."
+            )
+
+    except Exception as e:
+
+        print(
+            "Complaint table migration error:",
+            str(e)
+        )
+
+        raise
+
+
+# Run migration immediately after create_all()
+migrate_complaints_table()
 
 
 # =========================================================
@@ -145,8 +227,7 @@ def get_bins(
 
     for bin in bins:
 
-        # Only ACTIVE complaints should be associated
-        # with the bin.
+        # Only active complaints
         active_complaint = db.query(Complaint).filter(
             Complaint.bin_id == bin.id,
             Complaint.status.notin_([
@@ -195,7 +276,7 @@ def get_bins(
 
 
 # =========================================================
-# API BINS FOR MAP
+# API BINS FOR MAP / DASHBOARD
 # =========================================================
 
 @app.get("/api/bins")
@@ -249,8 +330,7 @@ def create_bin(
 
 ):
 
-    # CHECK DUPLICATE BIN CODE
-
+    # Duplicate check
     existing_bin = db.query(WasteBin).filter(
         WasteBin.bin_code == bin_code
     ).first()
@@ -263,8 +343,7 @@ def create_bin(
         )
 
 
-    # VALIDATE FILL LEVEL
-
+    # Validate fill level
     if fill_level < 0 or fill_level > 100:
 
         raise HTTPException(
@@ -273,8 +352,7 @@ def create_bin(
         )
 
 
-    # AUTOMATIC STATUS
-
+    # Automatic status
     if fill_level >= 80:
 
         status = "FULL"
@@ -288,8 +366,7 @@ def create_bin(
         status = "EMPTY"
 
 
-    # LOCATION COORDINATES
-
+    # Location coordinates
     location_coordinates = {
 
         "market road": (17.3855, 78.4869),
@@ -335,8 +412,7 @@ def create_bin(
         longitude = 78.4867
 
 
-    # CREATE BIN
-
+    # Create bin
     new_bin = WasteBin(
 
         bin_code=bin_code,
@@ -559,34 +635,32 @@ def dashboard(
 
 @app.get("/dashboard-data")
 def dashboard_data(
-
     db: Session = Depends(get_db)
-
 ):
+
+    # =====================================================
+    # GET ALL BINS
+    # =====================================================
 
     bins = db.query(WasteBin).all()
 
     total_bins = len(bins)
 
     full_bins = 0
-
     medium_bins = 0
-
     empty_bins = 0
 
     total_fill = 0
 
-
     status_count = {
-
         "FULL": 0,
-
         "MEDIUM": 0,
-
         "EMPTY": 0
-
     }
 
+    # =====================================================
+    # CALCULATE BIN STATISTICS
+    # =====================================================
 
     for bin in bins:
 
@@ -594,28 +668,24 @@ def dashboard_data(
 
         total_fill += fill
 
-
         if fill >= 80:
 
             full_bins += 1
-
             status_count["FULL"] += 1
 
         elif fill >= 40:
 
             medium_bins += 1
-
             status_count["MEDIUM"] += 1
 
         else:
 
             empty_bins += 1
-
             status_count["EMPTY"] += 1
 
-
-    average_fill = 0
-
+    # =====================================================
+    # AVERAGE FILL
+    # =====================================================
 
     if total_bins > 0:
 
@@ -624,32 +694,33 @@ def dashboard_data(
             2
         )
 
+    else:
 
+        average_fill = 0
+
+    # =====================================================
     # HIGH FILL BINS
+    # Dashboard threshold = 75%
+    # =====================================================
 
     high_fill_bins = sorted(
 
         [
-
             bin
 
             for bin in bins
 
-            if (bin.fill_level or 0) >= 80
-
+            if (bin.fill_level or 0) >= 75
         ],
 
         key=lambda x: x.fill_level or 0,
 
         reverse=True
-
     )
-
 
     top_labels = []
 
     top_fill_levels = []
-
 
     for bin in high_fill_bins:
 
@@ -661,51 +732,166 @@ def dashboard_data(
             bin.fill_level or 0
         )
 
+    # =====================================================
+    # GET ALL COMPLAINTS
+    # =====================================================
 
+    all_complaints = db.query(
+        Complaint
+    ).order_by(
+        Complaint.id.desc()
+    ).all()
+
+    # =====================================================
     # ACTIVE COMPLAINTS
+    # =====================================================
 
-    active_complaints = db.query(Complaint).filter(
+    active_complaints_list = [
 
-        Complaint.status.notin_([
+        complaint
+
+        for complaint in all_complaints
+
+        if complaint.status not in [
             "COLLECTED",
             "KEPT"
-        ])
+        ]
 
-    ).count()
+    ]
 
+    active_complaints = len(
+        active_complaints_list
+    )
 
-    # TOTAL COMPLAINTS
+    total_complaints = len(
+        all_complaints
+    )
 
-    total_complaints = db.query(
-        Complaint
-    ).count()
+    # =====================================================
+    # COMPLAINT DATA
+    # =====================================================
 
+    complaints = []
+
+    for complaint in active_complaints_list:
+
+        bin_data = None
+
+        if complaint.bin_id:
+
+            bin_data = db.query(
+                WasteBin
+            ).filter(
+                WasteBin.id == complaint.bin_id
+            ).first()
+
+        complaints.append({
+
+            "id":
+                complaint.id,
+
+            "name":
+                complaint.name,
+
+            "location":
+                complaint.location,
+
+            "latitude":
+                complaint.latitude,
+
+            "longitude":
+                complaint.longitude,
+
+            "bin_id":
+                complaint.bin_id,
+
+            "bin_code": (
+
+                bin_data.bin_code
+
+                if bin_data
+
+                else "N/A"
+
+            ),
+
+            "complaint_type":
+                complaint.complaint_type,
+
+            "description":
+                complaint.description,
+
+            "status":
+                complaint.status,
+
+            "collection_time": (
+
+                complaint.collection_time.isoformat()
+
+                if complaint.collection_time
+
+                else None
+
+            )
+
+        })
+
+    # =====================================================
+    # ALERT COUNT
+    # BINS >= 75%
+    # =====================================================
+
+    alert_count = len(
+        high_fill_bins
+    )
+
+    # =====================================================
+    # RETURN DATA
+    # =====================================================
 
     return {
 
-        "total_bins": total_bins,
+        "total_bins":
+            total_bins,
 
-        "full_bins": full_bins,
+        "full_bins":
+            full_bins,
 
-        "medium_bins": medium_bins,
+        "medium_bins":
+            medium_bins,
 
-        "empty_bins": empty_bins,
+        "empty_bins":
+            empty_bins,
 
-        "average_fill": average_fill,
+        "average_fill":
+            average_fill,
 
-        "top_labels": top_labels,
+        "top_labels":
+            top_labels,
 
-        "top_fill_levels": top_fill_levels,
+        "top_fill_levels":
+            top_fill_levels,
 
-        "status": status_count,
+        "status":
+            status_count,
 
-        "active_complaints": active_complaints,
+        "alert_count":
+            alert_count,
 
-        "total_complaints": total_complaints
+        "active_complaints":
+            active_complaints,
+
+        "total_complaints":
+            total_complaints,
+
+        # Kept for compatibility
+        "complaint_count":
+            active_complaints,
+
+        "complaints":
+            complaints
 
     }
-
-
 # =========================================================
 # MAP PAGE
 # =========================================================
@@ -789,10 +975,10 @@ def ai_bins(
 
 ):
 
-    bins = db.query(WasteBin).order_by(
-
+    bins = db.query(
+        WasteBin
+    ).order_by(
         WasteBin.id
-
     ).all()
 
 
@@ -830,7 +1016,9 @@ def ai_prediction(
 
 ):
 
-    bin_data = db.query(WasteBin).filter(
+    bin_data = db.query(
+        WasteBin
+    ).filter(
 
         WasteBin.id == bin_id
 
@@ -849,9 +1037,7 @@ def ai_prediction(
 
 
     predicted = predict_fill_level(
-
         bin_data.fill_level
-
     )
 
 
@@ -870,15 +1056,20 @@ def ai_prediction(
 
     return {
 
-        "bin_id": bin_data.id,
+        "bin_id":
+            bin_data.id,
 
-        "location": bin_data.location,
+        "location":
+            bin_data.location,
 
-        "current_fill": bin_data.fill_level,
+        "current_fill":
+            bin_data.fill_level,
 
-        "predicted_fill": predicted,
+        "predicted_fill":
+            predicted,
 
-        "decision": decision
+        "decision":
+            decision
 
     }
 
@@ -1064,32 +1255,42 @@ def create_complaint(
 
     return {
 
-        "message": "Complaint submitted successfully",
+        "message":
+            "Complaint submitted successfully",
 
-        "complaint_id": complaint.id,
+        "complaint_id":
+            complaint.id,
 
-        "location": complaint.location,
+        "location":
+            complaint.location,
 
-        "latitude": complaint.latitude,
+        "latitude":
+            complaint.latitude,
 
-        "longitude": complaint.longitude,
+        "longitude":
+            complaint.longitude,
 
         "nearest_bin": {
 
-            "id": nearest_bin.id,
+            "id":
+                nearest_bin.id,
 
-            "bin_code": nearest_bin.bin_code,
+            "bin_code":
+                nearest_bin.bin_code,
 
-            "location": nearest_bin.location,
+            "location":
+                nearest_bin.location,
 
-            "distance_km": round(
-                shortest_distance,
-                3
-            )
+            "distance_km":
+                round(
+                    shortest_distance,
+                    3
+                )
 
         },
 
-        "status": complaint.status
+        "status":
+            complaint.status
 
     }
 
@@ -1105,7 +1306,9 @@ def get_complaints(
 
 ):
 
-    complaints = db.query(Complaint).order_by(
+    complaints = db.query(
+        Complaint
+    ).order_by(
 
         Complaint.id.desc()
 
@@ -1122,7 +1325,9 @@ def get_complaints(
 
         if complaint.bin_id:
 
-            bin_data = db.query(WasteBin).filter(
+            bin_data = db.query(
+                WasteBin
+            ).filter(
 
                 WasteBin.id == complaint.bin_id
 
@@ -1131,17 +1336,23 @@ def get_complaints(
 
         result.append({
 
-            "id": complaint.id,
+            "id":
+                complaint.id,
 
-            "name": complaint.name,
+            "name":
+                complaint.name,
 
-            "location": complaint.location,
+            "location":
+                complaint.location,
 
-            "latitude": complaint.latitude,
+            "latitude":
+                complaint.latitude,
 
-            "longitude": complaint.longitude,
+            "longitude":
+                complaint.longitude,
 
-            "bin_id": complaint.bin_id,
+            "bin_id":
+                complaint.bin_id,
 
             "bin_code": (
 
@@ -1153,11 +1364,14 @@ def get_complaints(
 
             ),
 
-            "complaint_type": complaint.complaint_type,
+            "complaint_type":
+                complaint.complaint_type,
 
-            "description": complaint.description,
+            "description":
+                complaint.description,
 
-            "status": complaint.status,
+            "status":
+                complaint.status,
 
             "collection_time": (
 
@@ -1188,7 +1402,9 @@ def collect_complaint(
 
 ):
 
-    complaint = db.query(Complaint).filter(
+    complaint = db.query(
+        Complaint
+    ).filter(
 
         Complaint.id == complaint_id
 
@@ -1206,7 +1422,7 @@ def collect_complaint(
         )
 
 
-    # PREVENT RE-COLLECTION
+    # Prevent re-collection
 
     if complaint.status in [
         "COLLECTED",
@@ -1222,28 +1438,30 @@ def collect_complaint(
         )
 
 
-    # FIND ASSOCIATED BIN
+    # Find associated bin
 
     bin_data = None
 
 
     if complaint.bin_id:
 
-        bin_data = db.query(WasteBin).filter(
+        bin_data = db.query(
+            WasteBin
+        ).filter(
 
             WasteBin.id == complaint.bin_id
 
         ).first()
 
 
-    # UPDATE COMPLAINT
+    # Update complaint
 
     complaint.status = "COLLECTED"
 
     complaint.collection_time = datetime.now()
 
 
-    # EMPTY ASSOCIATED BIN
+    # Empty associated bin
 
     if bin_data:
 
@@ -1259,11 +1477,14 @@ def collect_complaint(
 
     return {
 
-        "message": "Complaint marked as collected",
+        "message":
+            "Complaint marked as collected",
 
-        "complaint_id": complaint.id,
+        "complaint_id":
+            complaint.id,
 
-        "status": complaint.status,
+        "status":
+            complaint.status,
 
         "collection_time": (
 
@@ -1321,7 +1542,9 @@ def keep_complaint(
 
 ):
 
-    complaint = db.query(Complaint).filter(
+    complaint = db.query(
+        Complaint
+    ).filter(
 
         Complaint.id == complaint_id
 
@@ -1352,8 +1575,6 @@ def keep_complaint(
         )
 
 
-    # KEPT means preserve it in history
-
     complaint.status = "KEPT"
 
 
@@ -1364,11 +1585,14 @@ def keep_complaint(
 
     return {
 
-        "message": "Complaint kept in history",
+        "message":
+            "Complaint kept in history",
 
-        "complaint_id": complaint.id,
+        "complaint_id":
+            complaint.id,
 
-        "status": complaint.status
+        "status":
+            complaint.status
 
     }
 
@@ -1386,7 +1610,9 @@ def delete_complaint(
 
 ):
 
-    complaint = db.query(Complaint).filter(
+    complaint = db.query(
+        Complaint
+    ).filter(
 
         Complaint.id == complaint_id
 
@@ -1427,8 +1653,10 @@ def delete_complaint(
 
     return {
 
-        "message": "Complaint deleted successfully",
+        "message":
+            "Complaint deleted successfully",
 
-        "complaint_id": complaint_id
+        "complaint_id":
+            complaint_id
 
     }

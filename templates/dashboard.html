@@ -11,7 +11,9 @@
     <div class="dashboard-header">
 
         <div>
-            <h1>Smart Waste Management Dashboard</h1>
+            <h1>
+                Smart Waste Management Dashboard
+            </h1>
 
             <p>
                 AI Enabled IoT Waste Monitoring System
@@ -29,7 +31,6 @@
 
         <!-- TOTAL BINS -->
         <div class="stat-card">
-
             <h4>Total Bins</h4>
 
             <h2 id="totalBins">
@@ -39,13 +40,11 @@
             <span>
                 Connected Bins
             </span>
-
         </div>
 
 
         <!-- FULL BINS -->
         <div class="stat-card danger">
-
             <h4>Full Bins</h4>
 
             <h2 id="fullBins">
@@ -55,13 +54,11 @@
             <span>
                 Need Collection
             </span>
-
         </div>
 
 
         <!-- AVERAGE FILL -->
         <div class="stat-card warning">
-
             <h4>Average Fill</h4>
 
             <h2 id="averageFill">
@@ -71,13 +68,11 @@
             <span>
                 Current Waste Level
             </span>
-
         </div>
 
 
         <!-- ALERTS -->
         <div class="stat-card success">
-
             <h4>Alerts</h4>
 
             <h2 id="alertCount">
@@ -87,13 +82,11 @@
             <span>
                 Bins Above 75%
             </span>
-
         </div>
 
 
         <!-- ACTIVE COMPLAINTS -->
         <div class="stat-card danger">
-
             <h4>Active Complaints</h4>
 
             <h2 id="complaintCount">
@@ -103,7 +96,6 @@
             <span>
                 Requires Attention
             </span>
-
         </div>
 
     </div>
@@ -116,34 +108,34 @@
     <div class="charts-container">
 
         <!-- HIGH FILL BINS -->
-
         <div class="chart-card">
 
             <h3>
-                High Fill Bins (&gt;75%)
+                Bin Fill Levels
             </h3>
 
-            <div class="chart-box">
-
+            <div
+                class="chart-box"
+                style="height:300px; position:relative;"
+            >
                 <canvas id="barChart"></canvas>
-
             </div>
 
         </div>
 
 
         <!-- WASTE STATUS -->
-
         <div class="chart-card">
 
             <h3>
                 Waste Status Distribution
             </h3>
 
-            <div class="chart-box">
-
+            <div
+                class="chart-box"
+                style="height:300px; position:relative;"
+            >
                 <canvas id="pieChart"></canvas>
-
             </div>
 
         </div>
@@ -164,7 +156,6 @@
             </div>
 
             <div>
-
                 <h3>
                     AI Prediction
                 </h3>
@@ -173,7 +164,6 @@
                     Intelligent waste collection priority
                     based on current bin fill levels.
                 </p>
-
             </div>
 
         </div>
@@ -207,50 +197,53 @@
             Live Bin Monitoring
         </h3>
 
+        <div style="overflow-x:auto;">
 
-        <table>
+            <table>
 
-            <thead>
+                <thead>
 
-                <tr>
+                    <tr>
 
-                    <th>
-                        Bin ID
-                    </th>
+                        <th>
+                            Bin ID
+                        </th>
 
-                    <th>
-                        Location
-                    </th>
+                        <th>
+                            Location
+                        </th>
 
-                    <th>
-                        Fill Level
-                    </th>
+                        <th>
+                            Fill Level
+                        </th>
 
-                    <th>
-                        Status
-                    </th>
+                        <th>
+                            Status
+                        </th>
 
-                </tr>
+                    </tr>
 
-            </thead>
+                </thead>
 
 
-            <tbody id="liveBinTable">
+                <tbody id="liveBinTable">
 
-                <tr>
+                    <tr>
 
-                    <td
-                        colspan="4"
-                        style="text-align:center;"
-                    >
-                        Loading bin data...
-                    </td>
+                        <td
+                            colspan="4"
+                            style="text-align:center;"
+                        >
+                            Loading bin data...
+                        </td>
 
-                </tr>
+                    </tr>
 
-            </tbody>
+                </tbody>
 
-        </table>
+            </table>
+
+        </div>
 
     </div>
 
@@ -340,6 +333,9 @@
 
 <script>
 
+"use strict";
+
+
 /* =========================================================
    GLOBAL VARIABLES
 ========================================================= */
@@ -349,482 +345,568 @@ let pieChart = null;
 
 
 /* =========================================================
-   LOAD DASHBOARD DATA
+   SAFE TEXT FUNCTION
 ========================================================= */
 
-function loadDashboardData() {
+function safeText(value) {
 
-    fetch("/dashboard-data")
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
 
-        .then(response => {
+    return String(value);
+}
 
-            if (!response.ok) {
 
-                throw new Error(
-                    "Dashboard API failed: "
-                    + response.status
-                );
+/* =========================================================
+   LOAD DASHBOARD SUMMARY + PIE CHART
+========================================================= */
 
+async function loadDashboardData() {
+
+    try {
+
+        const response = await fetch(
+            "/dashboard-data",
+            {
+                cache: "no-store"
             }
+        );
 
-            return response.json();
 
-        })
+        if (!response.ok) {
 
-        .then(data => {
-
-            console.log(
-                "Dashboard Data:",
-                data
+            throw new Error(
+                "Dashboard API returned HTTP "
+                + response.status
             );
 
+        }
 
-            /* =================================================
-               SUMMARY CARDS
-            ================================================= */
 
-            document.getElementById(
-                "totalBins"
-            ).textContent =
-                data.total_bins ?? 0;
+        const data = await response.json();
 
 
-            document.getElementById(
-                "fullBins"
-            ).textContent =
-                data.full_bins ?? 0;
+        console.log(
+            "Dashboard Data:",
+            data
+        );
 
 
-            document.getElementById(
-                "averageFill"
-            ).textContent =
-                (data.average_fill ?? 0)
-                + "%";
+        /* =================================================
+           SUMMARY CARDS
+        ================================================= */
 
+        document.getElementById(
+            "totalBins"
+        ).textContent =
+            data.total_bins ?? 0;
 
-            /* =================================================
-               ACTIVE COMPLAINTS
-               
-               Backend returns:
-               active_complaints
-            ================================================= */
 
-            document.getElementById(
-                "complaintCount"
-            ).textContent =
-                data.active_complaints ?? 0;
+        document.getElementById(
+            "fullBins"
+        ).textContent =
+            data.full_bins ?? 0;
 
 
-            /* =================================================
-               ALERT COUNT
-               
-               High fill bins are bins above 75%.
-               
-               Backend currently provides:
-               top_labels
-               top_fill_levels
-            ================================================= */
+        document.getElementById(
+            "averageFill"
+        ).textContent =
+            (data.average_fill ?? 0) + "%";
 
-            let alertCount = 0;
 
+        document.getElementById(
+            "alertCount"
+        ).textContent =
+            data.alert_count ?? 0;
 
-            if (
-                data.high_fill_count !== undefined
-            ) {
 
-                alertCount =
-                    data.high_fill_count;
+        document.getElementById(
+            "complaintCount"
+        ).textContent =
+            data.active_complaints ?? 0;
 
-            }
 
-            else if (
-                Array.isArray(data.top_labels)
-            ) {
+        /* =================================================
+           STATUS DATA
+        ================================================= */
 
-                alertCount =
-                    data.top_labels.length;
+        const status =
+            data.status || {};
 
-            }
 
+        /* =================================================
+           PIE / DOUGHNUT CHART
+        ================================================= */
 
-            document.getElementById(
-                "alertCount"
-            ).textContent =
-                alertCount;
+        const pieCanvas =
+            document.getElementById("pieChart");
 
 
-            /* =================================================
-               BAR CHART
-            ================================================= */
+        if (pieCanvas) {
 
-            const topLabels =
-                Array.isArray(data.top_labels)
-                    ? data.top_labels
-                    : [];
+            const pieData = [
 
+                Number(status.FULL ?? 0),
 
-            const topFillLevels =
-                Array.isArray(data.top_fill_levels)
-                    ? data.top_fill_levels
-                    : [];
+                Number(status.MEDIUM ?? 0),
 
-
-            const bar =
-                document.getElementById(
-                    "barChart"
-                );
-
-
-            if (bar) {
-
-                if (barChart === null) {
-
-                    barChart = new Chart(
-
-                        bar,
-
-                        {
-
-                            type: "bar",
-
-                            data: {
-
-                                labels:
-                                    topLabels,
-
-                                datasets: [
-
-                                    {
-
-                                        label:
-                                            "Fill Level (%)",
-
-                                        data:
-                                            topFillLevels,
-
-                                        backgroundColor:
-                                            topFillLevels.map(
-                                                value => {
-
-                                                    if (
-                                                        value >= 90
-                                                    ) {
-
-                                                        return "#dc3545";
-
-                                                    }
-
-                                                    return "#ff9800";
-
-                                                }
-                                            ),
-
-                                        borderRadius: 6
-
-                                    }
-
-                                ]
-
-                            },
-
-
-                            options: {
-
-                                responsive: true,
-
-                                maintainAspectRatio: false,
-
-                                plugins: {
-
-                                    legend: {
-
-                                        display: false
-
-                                    }
-
-                                },
-
-
-                                scales: {
-
-                                    x: {
-
-                                        ticks: {
-
-                                            maxRotation: 45,
-
-                                            minRotation: 0
-
-                                        }
-
-                                    },
-
-
-                                    y: {
-
-                                        beginAtZero: true,
-
-                                        max: 100,
-
-                                        ticks: {
-
-                                            stepSize: 20
-
-                                        }
-
-                                    }
-
-                                }
-
-                            }
-
-                        }
-
-                    );
-
-                }
-
-                else {
-
-                    barChart.data.labels =
-                        topLabels;
-
-
-                    barChart.data.datasets[0].data =
-                        topFillLevels;
-
-
-                    barChart.data.datasets[0].backgroundColor =
-                        topFillLevels.map(
-                            value => {
-
-                                if (
-                                    value >= 90
-                                ) {
-
-                                    return "#dc3545";
-
-                                }
-
-                                return "#ff9800";
-
-                            }
-                        );
-
-
-                    barChart.update();
-
-                }
-
-            }
-
-
-            /* =================================================
-               PIE / DOUGHNUT CHART
-            ================================================= */
-
-            const status =
-                data.status || {};
-
-
-            const statusData = [
-
-                status.FULL ?? 0,
-
-                status.MEDIUM ?? 0,
-
-                status.EMPTY ?? 0
+                Number(status.EMPTY ?? 0)
 
             ];
 
 
-            const pie =
-                document.getElementById(
-                    "pieChart"
-                );
+            if (pieChart === null) {
 
+                pieChart = new Chart(
+                    pieCanvas,
+                    {
 
-            if (pie) {
+                        type: "doughnut",
 
-                if (pieChart === null) {
+                        data: {
 
-                    pieChart = new Chart(
+                            labels: [
+                                "FULL",
+                                "MEDIUM",
+                                "EMPTY"
+                            ],
 
-                        pie,
+                            datasets: [
 
-                        {
+                                {
+                                    data: pieData,
 
-                            type: "doughnut",
+                                    backgroundColor: [
+                                        "#dc3545",
+                                        "#ff9800",
+                                        "#28a745"
+                                    ],
 
-                            data: {
+                                    borderWidth: 2
+                                }
 
-                                labels: [
+                            ]
 
-                                    "FULL",
+                        },
 
-                                    "MEDIUM",
+                        options: {
 
-                                    "EMPTY"
+                            responsive: true,
 
-                                ],
+                            maintainAspectRatio: false,
 
+                            plugins: {
 
-                                datasets: [
-
-                                    {
-
-                                        data:
-                                            statusData,
-
-                                        backgroundColor: [
-
-                                            "#dc3545",
-
-                                            "#ff9800",
-
-                                            "#28a745"
-
-                                        ],
-
-                                        borderWidth: 2
-
-                                    }
-
-                                ]
-
-                            },
-
-
-                            options: {
-
-                                responsive: true,
-
-                                maintainAspectRatio: false,
-
-                                plugins: {
-
-                                    legend: {
-
-                                        position:
-                                            "bottom"
-
-                                    }
-
+                                legend: {
+                                    position: "bottom"
                                 }
 
                             }
 
                         }
 
-                    );
-
-                }
-
-                else {
-
-                    pieChart.data.datasets[0].data =
-                        statusData;
-
-                    pieChart.update();
-
-                }
+                    }
+                );
 
             }
 
-        })
+            else {
 
+                pieChart
+                    .data
+                    .datasets[0]
+                    .data = pieData;
 
-        .catch(error => {
+                pieChart.update();
 
-            console.error(
-                "Dashboard data error:",
-                error
-            );
+            }
 
-        });
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Dashboard data error:",
+            error
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   LOAD ALL LIVE BINS
-
-   IMPORTANT:
-   Correct endpoint is /api/bins
+   LOAD BAR CHART DIRECTLY FROM /bins
 ========================================================= */
 
-function loadLiveBins() {
+async function loadBarChart() {
 
-    fetch("/api/bins")
+    try {
 
-        .then(response => {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Bins API failed: "
-                    + response.status
-                );
-
+        const response = await fetch(
+            "/bins",
+            {
+                cache: "no-store"
             }
-
-            return response.json();
-
-        })
+        );
 
 
-        .then(bins => {
+        if (!response.ok) {
 
-            console.log(
-                "Live Bins:",
+            throw new Error(
+                "Bins API returned HTTP "
+                + response.status
+            );
+
+        }
+
+
+        const bins =
+            await response.json();
+
+
+        console.log(
+            "Bar Chart Bins:",
+            bins
+        );
+
+
+        const canvas =
+            document.getElementById("barChart");
+
+
+        if (!canvas) {
+
+            console.error(
+                "barChart canvas not found"
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Make sure we always have an array
+         */
+
+        if (!Array.isArray(bins)) {
+
+            console.error(
+                "Bins data is not an array:",
                 bins
             );
 
+            return;
 
-            const table =
-                document.getElementById(
-                    "liveBinTable"
-                );
+        }
 
 
-            if (!table) {
+        /*
+         * Create labels and values directly
+         * from the actual bins.
+         */
 
-                return;
-
-            }
-
-
-            table.innerHTML = "";
-
-
-            if (
-                !Array.isArray(bins) ||
-                bins.length === 0
-            ) {
-
-                table.innerHTML = `
-
-                    <tr>
-
-                        <td
-                            colspan="4"
-                            style="text-align:center;"
-                        >
-
-                            No bins available
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-                return;
-
-            }
+        const labels = bins.map(
+            bin =>
+                safeText(
+                    bin.bin_code ||
+                    bin.location ||
+                    "BIN"
+                )
+        );
 
 
-            bins.forEach(bin => {
+        const values = bins.map(
+            bin =>
+                Number(
+                    bin.fill_level
+                ) || 0
+        );
+
+
+        /*
+         * Different colors based on fill level.
+         */
+
+        const backgroundColors =
+            values.map(
+                value => {
+
+                    if (value >= 75) {
+
+                        return "#dc3545";
+
+                    }
+
+                    else if (value >= 40) {
+
+                        return "#ff9800";
+
+                    }
+
+                    else {
+
+                        return "#28a745";
+
+                    }
+
+                }
+            );
+
+
+        /*
+         * Create chart
+         */
+
+        if (barChart === null) {
+
+            barChart = new Chart(
+                canvas,
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels: labels,
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Fill Level (%)",
+
+                                data: values,
+
+                                backgroundColor:
+                                    backgroundColors,
+
+                                borderRadius: 6,
+
+                                borderWidth: 0
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        animation: {
+                            duration: 500
+                        },
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                " Fill Level: "
+                                                +
+                                                context.raw
+                                                +
+                                                "%"
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            x: {
+
+                                ticks: {
+
+                                    maxRotation: 45,
+
+                                    minRotation: 0
+
+                                }
+
+                            },
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                max: 100,
+
+                                ticks: {
+
+                                    stepSize: 20,
+
+                                    callback:
+                                        function(value) {
+
+                                            return value + "%";
+
+                                        }
+
+                                },
+
+                                title: {
+
+                                    display: true,
+
+                                    text:
+                                        "Waste Fill Level"
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /*
+         * Update existing chart
+         */
+
+        else {
+
+            barChart.data.labels =
+                labels;
+
+
+            barChart.data.datasets[0].data =
+                values;
+
+
+            barChart.data.datasets[0]
+                .backgroundColor =
+                backgroundColors;
+
+
+            barChart.update();
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Bar chart error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD LIVE BINS
+========================================================= */
+
+async function loadLiveBins() {
+
+    const table =
+        document.getElementById(
+            "liveBinTable"
+        );
+
+
+    if (!table) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/bins",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Bins API returned HTTP "
+                + response.status
+            );
+
+        }
+
+
+        const bins =
+            await response.json();
+
+
+        console.log(
+            "Live Bins:",
+            bins
+        );
+
+
+        table.innerHTML = "";
+
+
+        if (
+            !Array.isArray(bins) ||
+            bins.length === 0
+        ) {
+
+            table.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        style="text-align:center;"
+                    >
+                        No bins available
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        bins.forEach(
+            bin => {
 
                 let statusClass =
                     "empty";
@@ -849,19 +931,27 @@ function loadLiveBins() {
                 }
 
 
+                const fillLevel =
+                    Number(
+                        bin.fill_level
+                    ) || 0;
+
+
                 table.innerHTML += `
 
                     <tr>
 
                         <td>
-                            ${bin.bin_code ?? "-"}
+                            ${safeText(
+                                bin.bin_code
+                            )}
                         </td>
-
 
                         <td>
-                            ${bin.location ?? "-"}
+                            ${safeText(
+                                bin.location
+                            )}
                         </td>
-
 
                         <td>
 
@@ -872,11 +962,11 @@ function loadLiveBins() {
                                 <div
                                     class="progress-bar"
                                     style="
-                                        width:${bin.fill_level ?? 0}%;
+                                        width:${fillLevel}%;
                                     "
                                 >
 
-                                    ${bin.fill_level ?? 0}%
+                                    ${fillLevel}%
 
                                 </div>
 
@@ -884,17 +974,15 @@ function loadLiveBins() {
 
                         </td>
 
-
                         <td>
 
                             <span
-                                class="
-                                    status
-                                    ${statusClass}
-                                "
+                                class="status ${statusClass}"
                             >
 
-                                ${bin.status ?? "UNKNOWN"}
+                                ${safeText(
+                                    bin.status
+                                )}
 
                             </span>
 
@@ -904,51 +992,41 @@ function loadLiveBins() {
 
                 `;
 
-            });
-
-        })
-
-
-        .catch(error => {
-
-            console.error(
-                "Live monitoring error:",
-                error
-            );
-
-
-            const table =
-                document.getElementById(
-                    "liveBinTable"
-                );
-
-
-            if (table) {
-
-                table.innerHTML = `
-
-                    <tr>
-
-                        <td
-                            colspan="4"
-                            style="
-                                text-align:center;
-                                color:red;
-                                padding:20px;
-                            "
-                        >
-
-                            Unable to load bin data
-
-                        </td>
-
-                    </tr>
-
-                `;
-
             }
+        );
 
-        });
+    }
+
+    catch (error) {
+
+        console.error(
+            "Live monitoring error:",
+            error
+        );
+
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    style="
+                        text-align:center;
+                        color:#dc3545;
+                        padding:20px;
+                    "
+                >
+
+                    Unable to load bin data
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
 
 }
 
@@ -957,216 +1035,176 @@ function loadLiveBins() {
    LOAD DASHBOARD COMPLAINTS
 ========================================================= */
 
-function loadDashboardComplaints() {
+async function loadDashboardComplaints() {
 
-    fetch("/dashboard-data")
-
-        .then(response => {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Dashboard complaint API failed: "
-                    + response.status
-                );
-
-            }
-
-            return response.json();
-
-        })
-
-        .then(data => {
-
-            const table =
-                document.getElementById(
-                    "dashboardComplaintTable"
-                );
+    const table =
+        document.getElementById(
+            "dashboardComplaintTable"
+        );
 
 
-            if (!table) {
-
-                return;
-
-            }
+    if (!table) {
+        return;
+    }
 
 
-            table.innerHTML = "";
+    try {
 
-
-            /*
-                Your current /dashboard-data response
-                does not contain a complaints array.
-
-                Therefore, show "No active complaints"
-                when complaints are not returned.
-            */
-
-            const complaints =
-                Array.isArray(data.complaints)
-                    ? data.complaints
-                    : [];
-
-
-            if (
-                complaints.length === 0
-            ) {
-
-                table.innerHTML = `
-
-                    <tr>
-
-                        <td
-                            colspan="7"
-                            style="
-                                text-align:center;
-                                padding:20px;
-                            "
-                        >
-
-                            ✅ No active complaints
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-                return;
-
-            }
-
-
-            complaints.forEach(
-                complaint => {
-
-                    let statusClass =
-                        "pending";
-
-
-                    if (
-                        complaint.status &&
-                        complaint.status
-                            .toLowerCase()
-                            === "in progress"
-                    ) {
-
-                        statusClass =
-                            "progress";
-
-                    }
-
-
-                    else if (
-                        complaint.status &&
-                        (
-                            complaint.status
-                                .toLowerCase()
-                                === "resolved"
-                            ||
-                            complaint.status
-                                .toLowerCase()
-                                === "collected"
-                        )
-                    ) {
-
-                        statusClass =
-                            "resolved";
-
-                    }
-
-
-                    table.innerHTML += `
-
-                        <tr>
-
-                            <td>
-                                ${complaint.id ?? "-"}
-                            </td>
-
-                            <td>
-
-                                <strong>
-                                    ${complaint.name ?? "-"}
-                                </strong>
-
-                            </td>
-
-                            <td>
-                                ${complaint.location ?? "-"}
-                            </td>
-
-                            <td>
-                                ${complaint.bin_code ?? "-"}
-                            </td>
-
-                            <td>
-                                ${complaint.complaint_type ?? "-"}
-                            </td>
-
-                            <td
-                                class="description-cell"
-                            >
-
-                                ${complaint.description ?? "-"}
-
-                            </td>
-
-                            <td>
-
-                                <span
-                                    class="
-                                        complaint-status
-                                        ${statusClass}
-                                    "
-                                >
-
-                                    ${complaint.status ?? "Pending"}
-
-                                </span>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
+        const response =
+            await fetch(
+                "/dashboard-data",
+                {
+                    cache: "no-store"
                 }
             );
 
-        })
 
+        if (!response.ok) {
 
-        .catch(error => {
-
-            console.error(
-                "Dashboard complaints error:",
-                error
+            throw new Error(
+                "Complaint API returned HTTP "
+                + response.status
             );
 
-
-            const table =
-                document.getElementById(
-                    "dashboardComplaintTable"
-                );
+        }
 
 
-            if (table) {
+        const data =
+            await response.json();
 
-                table.innerHTML = `
+
+        console.log(
+            "Dashboard complaints:",
+            data.complaints
+        );
+
+
+        const complaints =
+            Array.isArray(data.complaints)
+                ? data.complaints
+                : [];
+
+
+        table.innerHTML = "";
+
+
+        if (complaints.length === 0) {
+
+            table.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        style="
+                            text-align:center;
+                            padding:20px;
+                        "
+                    >
+
+                        No active complaints
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        complaints.forEach(
+            complaint => {
+
+                const status =
+                    safeText(
+                        complaint.status
+                    );
+
+
+                let statusClass =
+                    "pending";
+
+
+                if (
+                    status.toLowerCase()
+                    === "in progress"
+                ) {
+
+                    statusClass =
+                        "progress";
+
+                }
+
+                else if (
+                    status.toLowerCase()
+                    === "collected"
+                ) {
+
+                    statusClass =
+                        "resolved";
+
+                }
+
+
+                table.innerHTML += `
 
                     <tr>
 
-                        <td
-                            colspan="7"
-                            style="
-                                text-align:center;
-                                color:red;
-                                padding:20px;
-                            "
-                        >
+                        <td>
+                            ${safeText(
+                                complaint.id
+                            )}
+                        </td>
 
-                            Unable to load complaints
+                        <td>
+                            <strong>
+                                ${safeText(
+                                    complaint.name
+                                )}
+                            </strong>
+                        </td>
+
+                        <td>
+                            ${safeText(
+                                complaint.location
+                            )}
+                        </td>
+
+                        <td>
+                            ${safeText(
+                                complaint.bin_code
+                            )}
+                        </td>
+
+                        <td>
+                            ${safeText(
+                                complaint.complaint_type
+                            )}
+                        </td>
+
+                        <td
+                            class="description-cell"
+                        >
+                            ${safeText(
+                                complaint.description
+                            )}
+                        </td>
+
+                        <td>
+
+                            <span
+                                class="
+                                    complaint-status
+                                    ${statusClass}
+                                "
+                            >
+
+                                ${status}
+
+                            </span>
 
                         </td>
 
@@ -1175,116 +1213,143 @@ function loadDashboardComplaints() {
                 `;
 
             }
+        );
 
-        });
+    }
+
+    catch (error) {
+
+        console.error(
+            "Dashboard complaints error:",
+            error
+        );
+
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        color:#dc3545;
+                        padding:20px;
+                    "
+                >
+
+                    Unable to load complaints
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
 
 }
 
 
 /* =========================================================
-   FIND NEXT COLLECTION PRIORITY
-
-   IMPORTANT:
-   Correct endpoint is /api/bins
+   AI COLLECTION PRIORITY
 ========================================================= */
 
-function loadPriorityBin() {
+async function loadPriorityBin() {
 
-    fetch("/api/bins")
-
-        .then(response => {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Priority bins API failed: "
-                    + response.status
-                );
-
-            }
-
-            return response.json();
-
-        })
-
-        .then(bins => {
-
-            const priorityElement =
-                document.getElementById(
-                    "priorityBin"
-                );
+    const element =
+        document.getElementById(
+            "priorityBin"
+        );
 
 
-            if (!priorityElement) {
-
-                return;
-
-            }
+    if (!element) {
+        return;
+    }
 
 
-            if (
-                !Array.isArray(bins) ||
-                bins.length === 0
-            ) {
+    try {
 
-                priorityElement.textContent =
-                    "No bins available";
-
-                return;
-
-            }
-
-
-            /*
-                Create a copy before sorting.
-                This prevents modifying the original
-                API array unnecessarily.
-            */
-
-            const sortedBins =
-                [...bins].sort(
-                    (a, b) =>
-                        (b.fill_level ?? 0) -
-                        (a.fill_level ?? 0)
-                );
-
-
-            const highestBin =
-                sortedBins[0];
-
-
-            priorityElement.textContent =
-
-                (highestBin.bin_code ?? "Unknown")
-                + " — "
-                + (highestBin.fill_level ?? 0)
-                + "%";
-
-        })
-
-
-        .catch(error => {
-
-            console.error(
-                "Priority error:",
-                error
+        const response =
+            await fetch(
+                "/bins",
+                {
+                    cache: "no-store"
+                }
             );
 
 
-            const priorityElement =
-                document.getElementById(
-                    "priorityBin"
-                );
+        if (!response.ok) {
+
+            throw new Error(
+                "Priority API failed"
+            );
+
+        }
 
 
-            if (priorityElement) {
+        const bins =
+            await response.json();
 
-                priorityElement.textContent =
-                    "Unable to load";
 
-            }
+        if (
+            !Array.isArray(bins) ||
+            bins.length === 0
+        ) {
 
-        });
+            element.textContent =
+                "No bins available";
+
+            return;
+
+        }
+
+
+        const sortedBins =
+            [...bins].sort(
+
+                (a, b) =>
+                    (b.fill_level || 0)
+                    -
+                    (a.fill_level || 0)
+
+            );
+
+
+        const highestBin =
+            sortedBins[0];
+
+
+        element.textContent =
+
+            safeText(
+                highestBin.bin_code
+            )
+
+            + " — "
+
+            + (
+                Number(
+                    highestBin.fill_level
+                ) || 0
+            )
+
+            + "%";
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Priority error:",
+            error
+        );
+
+
+        element.textContent =
+            "Unable to load priority";
+
+    }
 
 }
 
@@ -1294,6 +1359,8 @@ function loadPriorityBin() {
 ========================================================= */
 
 loadDashboardData();
+
+loadBarChart();
 
 loadLiveBins();
 
@@ -1308,6 +1375,12 @@ loadDashboardComplaints();
 
 setInterval(
     loadDashboardData,
+    10000
+);
+
+
+setInterval(
+    loadBarChart,
     10000
 );
 

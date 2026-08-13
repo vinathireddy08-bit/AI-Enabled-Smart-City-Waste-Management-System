@@ -72,10 +72,6 @@ class Complaint(Base):
         nullable=False
     )
 
-    # =====================================================
-    # GPS LOCATION
-    # =====================================================
-
     latitude = Column(
         Float,
         nullable=True
@@ -85,10 +81,6 @@ class Complaint(Base):
         Float,
         nullable=True
     )
-
-    # =====================================================
-    # ASSOCIATED WASTE BIN
-    # =====================================================
 
     bin_id = Column(
         Integer,
@@ -105,18 +97,10 @@ class Complaint(Base):
         nullable=False
     )
 
-    # =====================================================
-    # COMPLAINT STATUS
-    # =====================================================
-
     status = Column(
         String,
         default="Pending"
     )
-
-    # =====================================================
-    # COLLECTION TIME
-    # =====================================================
 
     collection_time = Column(
         DateTime,

@@ -4,150 +4,21 @@
 
 <div class="dashboard-container">
 
-```
-<!-- ========================================
-     PAGE HEADER
-======================================== -->
 
-<div class="dashboard-header">
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
 
-    <div>
-        <h1>Smart Waste Management Dashboard</h1>
-
-        <p>
-            AI Enabled IoT Waste Monitoring System
-        </p>
-    </div>
-
-</div>
-
-
-<!-- ========================================
-     SUMMARY CARDS
-======================================== -->
-
-<div class="dashboard-cards">
-
-    <!-- TOTAL BINS -->
-
-    <div class="stat-card">
-
-        <h4>Total Bins</h4>
-
-        <h2 id="totalBins">0</h2>
-
-        <span>Connected Bins</span>
-
-    </div>
-
-
-    <!-- FULL BINS -->
-
-    <div class="stat-card danger">
-
-        <h4>Full Bins</h4>
-
-        <h2 id="fullBins">0</h2>
-
-        <span>Need Collection</span>
-
-    </div>
-
-
-    <!-- AVERAGE FILL -->
-
-    <div class="stat-card warning">
-
-        <h4>Average Fill</h4>
-
-        <h2 id="averageFill">0%</h2>
-
-        <span>Current Waste Level</span>
-
-    </div>
-
-
-    <!-- ALERTS -->
-
-    <div class="stat-card success">
-
-        <h4>Alerts</h4>
-
-        <h2 id="alertCount">0</h2>
-
-        <span>Bins Above 75%</span>
-
-    </div>
-
-</div>
-
-
-<!-- ========================================
-     CHARTS
-======================================== -->
-
-<div class="charts-container">
-
-
-    <!-- HIGH FILL BINS BAR CHART -->
-
-    <div class="chart-card">
-
-        <h3>
-            High Fill Bins (&gt;75%)
-        </h3>
-
-        <div class="chart-box">
-
-            <canvas id="barChart"></canvas>
-
-        </div>
-
-    </div>
-
-
-    <!-- WASTE STATUS PIE CHART -->
-
-    <div class="chart-card">
-
-        <h3>
-            Waste Status Distribution
-        </h3>
-
-        <div class="chart-box">
-
-            <canvas id="pieChart"></canvas>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- ========================================
-======================================== -->
-<!-- ========================================
-     AI PREDICTION
-======================================== -->
-
-<div class="ai-card">
-
-    <div class="ai-title">
-
-        <div class="ai-icon">
-            🤖
-        </div>
+    <div class="dashboard-header">
 
         <div>
 
-            <h3>
-                AI Prediction
-            </h3>
+            <h1>
+                Smart Waste Management Dashboard
+            </h1>
 
             <p>
-                Intelligent waste collection priority
-                based on current bin fill levels.
+                AI Enabled IoT Waste Monitoring System
             </p>
 
         </div>
@@ -155,102 +26,372 @@
     </div>
 
 
-    <div class="prediction-box">
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
 
-        <div class="prediction-label">
-            Next Collection Priority
+    <div class="dashboard-cards">
+
+
+        <!-- TOTAL BINS -->
+
+        <div class="stat-card">
+
+            <h4>
+                Total Bins
+            </h4>
+
+            <h2 id="totalBins">
+                0
+            </h2>
+
+            <span>
+                Connected Bins
+            </span>
+
         </div>
 
-        <div
-            class="prediction-result"
-            id="priorityBin"
-        >
-            Loading...
+
+        <!-- FULL BINS -->
+
+        <div class="stat-card danger">
+
+            <h4>
+                Full Bins
+            </h4>
+
+            <h2 id="fullBins">
+                0
+            </h2>
+
+            <span>
+                Need Collection
+            </span>
+
+        </div>
+
+
+        <!-- AVERAGE FILL -->
+
+        <div class="stat-card warning">
+
+            <h4>
+                Average Fill
+            </h4>
+
+            <h2 id="averageFill">
+                0%
+            </h2>
+
+            <span>
+                Current Waste Level
+            </span>
+
+        </div>
+
+
+        <!-- ALERTS -->
+
+        <div class="stat-card success">
+
+            <h4>
+                Alerts
+            </h4>
+
+            <h2 id="alertCount">
+                0
+            </h2>
+
+            <span>
+                Bins Above 75%
+            </span>
+
+        </div>
+
+
+        <!-- ACTIVE COMPLAINTS -->
+
+        <div class="stat-card danger">
+
+            <h4>
+                Active Complaints
+            </h4>
+
+            <h2 id="complaintCount">
+                0
+            </h2>
+
+            <span>
+                Requires Attention
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS
+    ====================================================== -->
+
+    <div class="charts-container">
+
+
+        <!-- HIGH FILL BINS -->
+
+        <div class="chart-card">
+
+            <h3>
+                High Fill Bins (&gt;75%)
+            </h3>
+
+            <div class="chart-box">
+
+                <canvas id="barChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- WASTE STATUS -->
+
+        <div class="chart-card">
+
+            <h3>
+                Waste Status Distribution
+            </h3>
+
+            <div class="chart-box">
+
+                <canvas id="pieChart"></canvas>
+
+            </div>
+
         </div>
 
     </div>
 
+
+    <!-- =====================================================
+         AI PREDICTION
+    ====================================================== -->
+
+    <div class="ai-card">
+
+        <div class="ai-title">
+
+            <div class="ai-icon">
+                🤖
+            </div>
+
+            <div>
+
+                <h3>
+                    AI Prediction
+                </h3>
+
+                <p>
+                    Intelligent waste collection priority
+                    based on current bin fill levels.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="prediction-box">
+
+            <div class="prediction-label">
+                Next Collection Priority
+            </div>
+
+            <div
+                class="prediction-result"
+                id="priorityBin"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LIVE BIN MONITORING
+    ====================================================== -->
+
+    <div class="table-card">
+
+        <h3>
+            Live Bin Monitoring
+        </h3>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Bin ID
+                    </th>
+
+                    <th>
+                        Location
+                    </th>
+
+                    <th>
+                        Fill Level
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="liveBinTable">
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        style="text-align:center;"
+                    >
+                        Loading bin data...
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT COMPLAINTS
+    ====================================================== -->
+
+    <div class="table-card">
+
+        <h3>
+            Recent Complaints
+        </h3>
+
+        <p
+            style="
+                margin-top:-8px;
+                margin-bottom:20px;
+                color:#6b7280;
+            "
+        >
+            Active complaints requiring attention
+        </p>
+
+
+        <div
+            style="
+                overflow-x:auto;
+            "
+        >
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            ID
+                        </th>
+
+                        <th>
+                            Name
+                        </th>
+
+                        <th>
+                            Location
+                        </th>
+
+                        <th>
+                            Nearest Bin
+                        </th>
+
+                        <th>
+                            Complaint Type
+                        </th>
+
+                        <th>
+                            Description
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="dashboardComplaintTable">
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            style="text-align:center;"
+                        >
+
+                            Loading complaints...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
 </div>
 
-<!-- ========================================
-     LIVE BIN MONITORING
-======================================== -->
 
-<div class="table-card">
-
-    <h3>
-        Live Bin Monitoring
-    </h3>
-
-    <table>
-
-        <thead>
-
-            <tr>
-
-                <th>
-                    Bin ID
-                </th>
-
-                <th>
-                    Location
-                </th>
-
-                <th>
-                    Fill Level
-                </th>
-
-                <th>
-                    Status
-                </th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody id="liveBinTable">
-
-            <tr>
-
-                <td
-                    colspan="4"
-                    style="text-align:center;"
-                >
-                    Loading bin data...
-                </td>
-
-            </tr>
-
-        </tbody>
-
-    </table>
-
-</div>
-```
-
-</div>
-
-<!-- ========================================
+<!-- =====================================================
      CHART.JS
-======================================== -->
+====================================================== -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
 <script>
 
-/* ========================================
+/* =========================================================
    GLOBAL VARIABLES
-======================================== */
+========================================================= */
 
 let barChart = null;
 
 let pieChart = null;
 
 
-/* ========================================
+/* =========================================================
    LOAD DASHBOARD DATA
-======================================== */
+========================================================= */
 
 function loadDashboardData() {
 
@@ -278,43 +419,58 @@ function loadDashboardData() {
             );
 
 
-            /* ========================================
+            /* =================================================
                SUMMARY CARDS
-            ======================================== */
+            ================================================= */
 
             document.getElementById(
                 "totalBins"
             ).textContent =
-                data.total_bins;
+                data.total_bins || 0;
 
 
             document.getElementById(
                 "fullBins"
             ).textContent =
-                data.full_bins;
+                data.full_bins || 0;
 
 
             document.getElementById(
                 "averageFill"
             ).textContent =
-                data.average_fill + "%";
+                (data.average_fill || 0)
+                + "%";
 
 
-            /* ========================================
+            /* =================================================
+               ACTIVE COMPLAINTS
+            ================================================= */
+
+            document.getElementById(
+                "complaintCount"
+            ).textContent =
+                data.complaint_count || 0;
+
+
+            /* =================================================
                ALERT COUNT
-               
-               Count bins above 75%
-            ======================================== */
+            ================================================= */
 
             let alertCount = 0;
 
-            if (data.high_fill_count !== undefined) {
+
+            if (
+                data.high_fill_count !== undefined
+            ) {
 
                 alertCount =
                     data.high_fill_count;
 
             }
-            else {
+
+            else if (
+                data.top_labels
+            ) {
 
                 alertCount =
                     data.top_labels.length;
@@ -328,11 +484,9 @@ function loadDashboardData() {
                 alertCount;
 
 
-            /* ========================================
+            /* =================================================
                BAR CHART
-               
-               Only bins above 75%
-            ======================================== */
+            ================================================= */
 
             if (barChart === null) {
 
@@ -343,7 +497,9 @@ function loadDashboardData() {
 
 
                 barChart = new Chart(
+
                     bar,
+
                     {
 
                         type: "bar",
@@ -351,7 +507,7 @@ function loadDashboardData() {
                         data: {
 
                             labels:
-                                data.top_labels,
+                                data.top_labels || [],
 
                             datasets: [
 
@@ -361,10 +517,14 @@ function loadDashboardData() {
                                         "Fill Level (%)",
 
                                     data:
-                                        data.top_fill_levels,
+                                        data.top_fill_levels || [],
 
                                     backgroundColor:
-                                        data.top_fill_levels.map(
+                                        (
+                                            data.top_fill_levels
+                                            || []
+                                        ).map(
+
                                             value => {
 
                                                 if (
@@ -378,6 +538,7 @@ function loadDashboardData() {
                                                 return "#ff9800";
 
                                             }
+
                                         ),
 
                                     borderRadius: 6
@@ -440,6 +601,7 @@ function loadDashboardData() {
                         }
 
                     }
+
                 );
 
             }
@@ -448,18 +610,24 @@ function loadDashboardData() {
             else {
 
                 barChart.data.labels =
-                    data.top_labels;
+                    data.top_labels || [];
 
 
                 barChart.data.datasets[0].data =
-                    data.top_fill_levels;
+                    data.top_fill_levels || [];
 
 
                 barChart.data.datasets[0].backgroundColor =
-                    data.top_fill_levels.map(
+                    (
+                        data.top_fill_levels
+                        || []
+                    ).map(
+
                         value => {
 
-                            if (value >= 90) {
+                            if (
+                                value >= 90
+                            ) {
 
                                 return "#dc3545";
 
@@ -468,6 +636,7 @@ function loadDashboardData() {
                             return "#ff9800";
 
                         }
+
                     );
 
 
@@ -476,9 +645,13 @@ function loadDashboardData() {
             }
 
 
-            /* ========================================
+            /* =================================================
                PIE / DOUGHNUT CHART
-            ======================================== */
+            ================================================= */
+
+            const status =
+                data.status || {};
+
 
             if (pieChart === null) {
 
@@ -489,7 +662,9 @@ function loadDashboardData() {
 
 
                 pieChart = new Chart(
+
                     pie,
+
                     {
 
                         type: "doughnut",
@@ -513,11 +688,11 @@ function loadDashboardData() {
 
                                     data: [
 
-                                        data.status.FULL,
+                                        status.FULL || 0,
 
-                                        data.status.MEDIUM,
+                                        status.MEDIUM || 0,
 
-                                        data.status.EMPTY
+                                        status.EMPTY || 0
 
                                     ],
 
@@ -562,6 +737,7 @@ function loadDashboardData() {
                         }
 
                     }
+
                 );
 
             }
@@ -571,11 +747,11 @@ function loadDashboardData() {
 
                 pieChart.data.datasets[0].data = [
 
-                    data.status.FULL,
+                    status.FULL || 0,
 
-                    data.status.MEDIUM,
+                    status.MEDIUM || 0,
 
-                    data.status.EMPTY
+                    status.EMPTY || 0
 
                 ];
 
@@ -599,9 +775,9 @@ function loadDashboardData() {
 }
 
 
-/* ========================================
+/* =========================================================
    LOAD ALL LIVE BINS
-======================================== */
+========================================================= */
 
 function loadLiveBins() {
 
@@ -638,10 +814,6 @@ function loadLiveBins() {
 
             if (!table) {
 
-                console.error(
-                    "liveBinTable not found"
-                );
-
                 return;
 
             }
@@ -650,11 +822,10 @@ function loadLiveBins() {
             table.innerHTML = "";
 
 
-            /* ========================================
-               NO BINS
-            ======================================== */
-
-            if (bins.length === 0) {
+            if (
+                !bins ||
+                bins.length === 0
+            ) {
 
                 table.innerHTML = `
 
@@ -678,10 +849,6 @@ function loadLiveBins() {
             }
 
 
-            /* ========================================
-               DISPLAY ALL BINS
-            ======================================== */
-
             bins.forEach(bin => {
 
 
@@ -697,7 +864,6 @@ function loadLiveBins() {
                         "full";
 
                 }
-
 
                 else if (
                     bin.status === "MEDIUM"
@@ -735,7 +901,9 @@ function loadLiveBins() {
 
                                 <div
                                     class="progress-bar"
-                                    style="width:${bin.fill_level}%"
+                                    style="
+                                        width:${bin.fill_level}%
+                                    "
                                 >
 
                                     ${bin.fill_level}%
@@ -750,7 +918,10 @@ function loadLiveBins() {
                         <td>
 
                             <span
-                                class="status ${statusClass}"
+                                class="
+                                    status
+                                    ${statusClass}
+                                "
                             >
 
                                 ${bin.status}
@@ -790,7 +961,10 @@ function loadLiveBins() {
 
                         <td
                             colspan="4"
-                            style="text-align:center;color:red;"
+                            style="
+                                text-align:center;
+                                color:red;
+                            "
                         >
 
                             Unable to load bin data
@@ -808,20 +982,190 @@ function loadLiveBins() {
 }
 
 
-/* ========================================
+/* =========================================================
+   LOAD DASHBOARD COMPLAINTS
+========================================================= */
+
+function loadDashboardComplaints() {
+
+    fetch("/dashboard-data")
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Dashboard complaint API failed"
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            const table =
+                document.getElementById(
+                    "dashboardComplaintTable"
+                );
+
+
+            if (!table) {
+
+                return;
+
+            }
+
+
+            table.innerHTML = "";
+
+
+            const complaints =
+                data.complaints || [];
+
+
+            if (
+                complaints.length === 0
+            ) {
+
+                table.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            style="
+                                text-align:center;
+                                padding:20px;
+                            "
+                        >
+
+                            ✅ No active complaints
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                return;
+
+            }
+
+
+            complaints.forEach(
+                complaint => {
+
+
+                    let statusClass =
+                        "pending";
+
+
+                    if (
+                        complaint.status
+                            .toLowerCase()
+                            === "in progress"
+                    ) {
+
+                        statusClass =
+                            "progress";
+
+                    }
+
+
+                    table.innerHTML += `
+
+                        <tr>
+
+                            <td>
+                                ${complaint.id}
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    ${complaint.name}
+                                </strong>
+
+                            </td>
+
+                            <td>
+                                ${complaint.location}
+                            </td>
+
+                            <td>
+                                ${complaint.bin_code}
+                            </td>
+
+                            <td>
+                                ${complaint.complaint_type}
+                            </td>
+
+                            <td
+                                class="description-cell"
+                            >
+
+                                ${complaint.description}
+
+                            </td>
+
+                            <td>
+
+                                <span
+                                    class="
+                                        complaint-status
+                                        ${statusClass}
+                                    "
+                                >
+
+                                    ${complaint.status}
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            );
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Dashboard complaints error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
    FIND NEXT COLLECTION PRIORITY
-======================================== */
+========================================================= */
 
 function loadPriorityBin() {
 
     fetch("/bins")
 
-        .then(response => response.json())
+        .then(response =>
+            response.json()
+        )
 
         .then(bins => {
 
 
-            if (bins.length === 0) {
+            if (
+                !bins ||
+                bins.length === 0
+            ) {
 
                 document.getElementById(
                     "priorityBin"
@@ -833,12 +1177,12 @@ function loadPriorityBin() {
             }
 
 
-            /* Sort highest fill first */
-
             bins.sort(
+
                 (a, b) =>
                     b.fill_level -
                     a.fill_level
+
             );
 
 
@@ -849,11 +1193,11 @@ function loadPriorityBin() {
             document.getElementById(
                 "priorityBin"
             ).textContent =
+
                 highestBin.bin_code
                 + " — "
                 + highestBin.fill_level
                 + "%";
-
 
         })
 
@@ -870,9 +1214,9 @@ function loadPriorityBin() {
 }
 
 
-/* ========================================
+/* =========================================================
    INITIAL LOAD
-======================================== */
+========================================================= */
 
 loadDashboardData();
 
@@ -880,10 +1224,12 @@ loadLiveBins();
 
 loadPriorityBin();
 
+loadDashboardComplaints();
 
-/* ========================================
+
+/* =========================================================
    AUTO REFRESH
-======================================== */
+========================================================= */
 
 setInterval(
     loadDashboardData,
@@ -899,6 +1245,12 @@ setInterval(
 
 setInterval(
     loadPriorityBin,
+    10000
+);
+
+
+setInterval(
+    loadDashboardComplaints,
     10000
 );
 

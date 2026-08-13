@@ -4,173 +4,16 @@
 
 <div class="complaints-page">
 
-```
-<!-- =====================================================
-     PAGE HEADER
-====================================================== -->
+    <!-- PAGE HEADER -->
 
-<div class="complaints-page-header">
-
-    <div>
-        <h2>Complaint Management</h2>
-
-        <p>
-            Report waste management issues and track complaint status
-        </p>
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     SUBMIT COMPLAINT CARD
-====================================================== -->
-
-<div class="complaint-container">
-
-    <div class="complaint-section-header">
-
-        <div>
-            <h3>Submit a Complaint</h3>
-
-            <p>
-                Report overflowing bins, missed collections,
-                damaged bins, or other waste-related issues.
-            </p>
-        </div>
-
-    </div>
-
-
-    <form action="/complaints" method="post" class="complaint-form">
-
-        <!-- NAME -->
-
-        <div class="complaint-form-group">
-
-            <label for="name">
-                Name
-            </label>
-
-            <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Enter your name"
-                required
-            >
-
-        </div>
-
-
-        <!-- LOCATION -->
-
-        <div class="complaint-form-group">
-
-            <label for="location">
-                Location
-            </label>
-
-            <input
-                type="text"
-                id="location"
-                name="location"
-                placeholder="Enter complaint location"
-                required
-            >
-
-        </div>
-
-
-        <!-- COMPLAINT TYPE -->
-
-        <div class="complaint-form-group">
-
-            <label for="complaint_type">
-                Complaint Type
-            </label>
-
-            <select
-                id="complaint_type"
-                name="complaint_type"
-                required
-            >
-
-                <option value="">
-                    Select complaint type
-                </option>
-
-                <option value="Overflowing Bin">
-                    Overflowing Bin
-                </option>
-
-                <option value="Missed Collection">
-                    Missed Collection
-                </option>
-
-                <option value="Damaged Bin">
-                    Damaged Bin
-                </option>
-
-                <option value="Other">
-                    Other
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- DESCRIPTION -->
-
-        <div class="complaint-form-group">
-
-            <label for="description">
-                Description
-            </label>
-
-            <textarea
-                id="description"
-                name="description"
-                placeholder="Describe the issue in detail..."
-                required
-            ></textarea>
-
-        </div>
-
-
-        <!-- SUBMIT -->
-
-        <div class="complaint-submit-area">
-
-            <button
-                type="submit"
-                class="complaint-submit-btn"
-            >
-                Submit Complaint
-            </button>
-
-        </div>
-
-    </form>
-
-</div>
-
-
-<!-- =====================================================
-     COMPLAINT STATUS CARD
-====================================================== -->
-
-<div class="complaint-status-card">
-
-    <div class="complaint-section-header">
+    <div class="complaints-page-header">
 
         <div>
 
-            <h3>Complaint Status</h3>
+            <h2>Complaint Management</h2>
 
             <p>
-                View submitted complaints and their current status.
+                Report waste management issues and track complaint status
             </p>
 
         </div>
@@ -178,151 +21,564 @@
     </div>
 
 
-    <!-- TABLE -->
+    <!-- =====================================================
+         SUBMIT COMPLAINT
+    ====================================================== -->
 
-    <div class="complaint-table-wrapper">
+    <div class="complaint-container">
 
-        <table class="complaint-table">
+        <div class="complaint-section-header">
 
-            <thead>
+            <div>
 
-                <tr>
+                <h3>Submit a Complaint</h3>
 
-                    <th>ID</th>
+                <p>
+                    Report overflowing bins, missed collections,
+                    damaged bins, or other waste-related issues.
+                </p>
 
-                    <th>Name</th>
+            </div>
 
-                    <th>Location</th>
-
-                    <th>Complaint Type</th>
-
-                    <th>Description</th>
-
-                    <th>Status</th>
-
-                </tr>
-
-            </thead>
+        </div>
 
 
-            <tbody id="complaintTable">
+        <form
+            id="complaintForm"
+            class="complaint-form"
+        >
 
-                <!-- Data loaded using JavaScript -->
+            <!-- NAME -->
 
-            </tbody>
+            <div class="complaint-form-group">
 
-        </table>
+                <label for="name">
+                    Name
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your name"
+                    required
+                >
+
+            </div>
+
+
+            <!-- LOCATION -->
+
+            <div class="complaint-form-group">
+
+                <label for="location">
+                    Complaint Location
+                </label>
+
+                <div style="display:flex;gap:10px;">
+
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        placeholder="Example: Near Kothpet Bus Stop"
+                        required
+                        style="flex:1;"
+                    >
+
+                    <button
+                        type="button"
+                        id="locationBtn"
+                        class="complaint-submit-btn"
+                        onclick="getLocation()"
+                    >
+                        📍 Use My Location
+                    </button>
+
+                </div>
+
+
+                <small
+                    id="locationMessage"
+                    style="display:block;margin-top:8px;"
+                >
+
+                    Enter the complaint location manually,
+                    or use GPS if you are currently there.
+
+                </small>
+
+            </div>
+
+
+            <!-- GPS -->
+
+            <input
+                type="hidden"
+                id="latitude"
+                name="latitude"
+            >
+
+            <input
+                type="hidden"
+                id="longitude"
+                name="longitude"
+            >
+
+
+            <!-- NEAREST BIN -->
+
+            <div
+                id="nearestBinBox"
+                style="
+                    display:none;
+                    margin-top:10px;
+                    padding:15px;
+                    border-radius:10px;
+                    background:#f4f7fb;
+                "
+            >
+
+                <strong>
+                    🗑️ Nearest Waste Bin
+                </strong>
+
+                <div id="nearestBinInfo"></div>
+
+            </div>
+
+
+            <!-- COMPLAINT TYPE -->
+
+            <div class="complaint-form-group">
+
+                <label for="complaint_type">
+                    Complaint Type
+                </label>
+
+                <select
+                    id="complaint_type"
+                    name="complaint_type"
+                    required
+                >
+
+                    <option value="">
+                        Select complaint type
+                    </option>
+
+                    <option value="Overflowing Bin">
+                        Overflowing Bin
+                    </option>
+
+                    <option value="Missed Collection">
+                        Missed Collection
+                    </option>
+
+                    <option value="Damaged Bin">
+                        Damaged Bin
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div class="complaint-form-group">
+
+                <label for="description">
+                    Description
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe the issue in detail..."
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <div class="complaint-submit-area">
+
+                <button
+                    type="submit"
+                    id="submitBtn"
+                    class="complaint-submit-btn"
+                >
+                    Submit Complaint
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         COMPLAINT STATUS
+    ====================================================== -->
+
+    <div class="complaint-status-card">
+
+        <div class="complaint-section-header">
+
+            <div>
+
+                <h3>
+                    Complaint Status
+                </h3>
+
+                <p>
+                    View submitted complaints and their current status.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="complaint-table-wrapper">
+
+            <table class="complaint-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Name</th>
+
+                        <th>Location</th>
+
+                        <th>Nearest Bin</th>
+
+                        <th>Complaint Type</th>
+
+                        <th>Description</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="complaintTable">
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            style="text-align:center;"
+                        >
+
+                            Loading complaints...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
 
 </div>
-```
 
-</div>
-
-<!-- =========================================================
-     LOAD COMPLAINTS
-========================================================= -->
 
 <script>
 
-function loadComplaints() {
+/* =========================================================
+   GLOBAL LOCATION
+========================================================= */
 
-    fetch("/complaints")
-
-        .then(response => response.json())
-
-        .then(data => {
-
-            let table = "";
-
-            if (!data || data.length === 0) {
-
-                table = `
-                    <tr>
-                        <td colspan="6"
-                            class="no-complaints">
-                            No complaints submitted yet.
-                        </td>
-                    </tr>
-                `;
-
-            } else {
-
-                data.forEach(c => {
-
-                    let statusClass = "pending";
-
-                    if (
-                        c.status &&
-                        c.status.toLowerCase() === "resolved"
-                    ) {
-
-                        statusClass = "resolved";
-
-                    } else if (
-                        c.status &&
-                        c.status.toLowerCase() === "in progress"
-                    ) {
-
-                        statusClass = "progress";
-
-                    }
+let userLatitude = null;
+let userLongitude = null;
 
 
-                    table += `
+/* =========================================================
+   GET LOCATION
+========================================================= */
 
-                        <tr>
+function getLocation() {
 
-                            <td>
-                                ${c.id}
-                            </td>
+    const message =
+        document.getElementById("locationMessage");
 
-                            <td>
-                                <strong>
-                                    ${c.name}
-                                </strong>
-                            </td>
+    const button =
+        document.getElementById("locationBtn");
 
-                            <td>
-                                ${c.location}
-                            </td>
 
-                            <td>
-                                ${c.complaint_type}
-                            </td>
+    if (!navigator.geolocation) {
 
-                            <td class="description-cell">
-                                ${c.description}
-                            </td>
+        message.innerText =
+            "❌ Geolocation is not supported.";
 
-                            <td>
+        return;
 
-                                <span class="complaint-status ${statusClass}">
-                                    ${c.status}
-                                </span>
+    }
 
-                            </td>
 
-                        </tr>
+    button.disabled = true;
 
-                    `;
+    button.innerText =
+        "📍 Detecting...";
 
-                });
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            userLatitude =
+                position.coords.latitude;
+
+            userLongitude =
+                position.coords.longitude;
+
+
+            document.getElementById(
+                "latitude"
+            ).value = userLatitude;
+
+
+            document.getElementById(
+                "longitude"
+            ).value = userLongitude;
+
+
+            message.innerText =
+                "✅ Current location detected.";
+
+
+            button.disabled = false;
+
+            button.innerText =
+                "📍 Location Detected";
+
+
+            fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLatitude}&lon=${userLongitude}`
+            )
+
+            .then(response =>
+                response.json()
+            )
+
+            .then(data => {
+
+                if (
+                    data &&
+                    data.display_name
+                ) {
+
+                    document.getElementById(
+                        "location"
+                    ).value =
+                        data.display_name;
+
+                }
+
+
+                findNearestBin(
+                    userLatitude,
+                    userLongitude
+                );
+
+            })
+
+            .catch(error => {
+
+                console.error(error);
+
+
+                document.getElementById(
+                    "location"
+                ).value =
+                    `GPS Location (${userLatitude.toFixed(5)}, ${userLongitude.toFixed(5)})`;
+
+
+                findNearestBin(
+                    userLatitude,
+                    userLongitude
+                );
+
+            });
+
+        },
+
+        function(error) {
+
+            button.disabled = false;
+
+            button.innerText =
+                "📍 Use My Location";
+
+
+            message.innerText =
+                "❌ Unable to get your location.";
+
+        },
+
+        {
+
+            enableHighAccuracy: true,
+
+            timeout: 10000,
+
+            maximumAge: 0
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   FIND NEAREST BIN
+========================================================= */
+
+function findNearestBin(
+    latitude,
+    longitude
+) {
+
+    fetch("/api/bins")
+
+        .then(response =>
+            response.json()
+        )
+
+        .then(bins => {
+
+            if (
+                !Array.isArray(bins) ||
+                bins.length === 0
+            ) {
+
+                return;
 
             }
 
 
-            document.getElementById(
-                "complaintTable"
-            ).innerHTML = table;
+            let nearestBin = null;
+
+            let shortestDistance =
+                Infinity;
+
+
+            bins.forEach(bin => {
+
+                if (
+                    bin.latitude === null ||
+                    bin.longitude === null
+                ) {
+
+                    return;
+
+                }
+
+
+                const distance =
+                    calculateDistance(
+
+                        latitude,
+                        longitude,
+
+                        Number(bin.latitude),
+                        Number(bin.longitude)
+
+                    );
+
+
+                if (
+                    distance <
+                    shortestDistance
+                ) {
+
+                    shortestDistance =
+                        distance;
+
+                    nearestBin =
+                        bin;
+
+                }
+
+            });
+
+
+            if (!nearestBin) {
+
+                return;
+
+            }
+
+
+            const box =
+                document.getElementById(
+                    "nearestBinBox"
+                );
+
+
+            const info =
+                document.getElementById(
+                    "nearestBinInfo"
+                );
+
+
+            box.style.display =
+                "block";
+
+
+            info.innerHTML = `
+
+                <div style="margin-top:8px;">
+
+                    <strong>
+                        ${nearestBin.bin_code}
+                    </strong>
+
+                    <br>
+
+                    Location:
+                    ${nearestBin.location}
+
+                    <br>
+
+                    Current Fill:
+                    ${nearestBin.fill_level}%
+
+                    <br>
+
+                    Distance:
+                    ${shortestDistance.toFixed(2)} km
+
+                </div>
+
+            `;
 
         })
 
         .catch(error => {
 
             console.error(
-                "Error loading complaints:",
+                "Nearest bin error:",
                 error
             );
 
@@ -331,11 +587,995 @@ function loadComplaints() {
 }
 
 
-/* Load complaints when page opens */
+/* =========================================================
+   HAVERSINE
+========================================================= */
+
+function calculateDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
+
+    const R = 6371;
+
+
+    const dLat =
+        (lat2 - lat1) *
+        Math.PI / 180;
+
+
+    const dLon =
+        (lon2 - lon1) *
+        Math.PI / 180;
+
+
+    const a =
+
+        Math.sin(dLat / 2) *
+        Math.sin(dLat / 2)
+
+        +
+
+        Math.cos(
+            lat1 * Math.PI / 180
+        )
+
+        *
+
+        Math.cos(
+            lat2 * Math.PI / 180
+        )
+
+        *
+
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+
+    const c =
+        2 *
+        Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
+
+
+    return R * c;
+
+}
+
+
+/* =========================================================
+   SUBMIT COMPLAINT
+========================================================= */
+
+document
+    .getElementById("complaintForm")
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+
+            const form =
+                document.getElementById(
+                    "complaintForm"
+                );
+
+
+            const submitBtn =
+                document.getElementById(
+                    "submitBtn"
+                );
+
+
+            const name =
+                document.getElementById(
+                    "name"
+                ).value.trim();
+
+
+            const location =
+                document.getElementById(
+                    "location"
+                ).value.trim();
+
+
+            const complaintType =
+                document.getElementById(
+                    "complaint_type"
+                ).value;
+
+
+            const description =
+                document.getElementById(
+                    "description"
+                ).value.trim();
+
+
+            let latitude =
+                document.getElementById(
+                    "latitude"
+                ).value;
+
+
+            let longitude =
+                document.getElementById(
+                    "longitude"
+                ).value;
+
+
+            if (!name) {
+
+                alert(
+                    "Please enter your name."
+                );
+
+                return;
+
+            }
+
+
+            if (!location) {
+
+                alert(
+                    "Please enter the complaint location."
+                );
+
+                return;
+
+            }
+
+
+            if (!complaintType) {
+
+                alert(
+                    "Please select complaint type."
+                );
+
+                return;
+
+            }
+
+
+            if (!description) {
+
+                alert(
+                    "Please enter complaint description."
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * If user manually enters location,
+             * use default coordinates for nearest-bin
+             * calculation.
+             */
+
+            if (!latitude || !longitude) {
+
+                latitude = "17.3850";
+
+                longitude = "78.4867";
+
+            }
+
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "name",
+                name
+            );
+
+
+            formData.append(
+                "location",
+                location
+            );
+
+
+            formData.append(
+                "latitude",
+                latitude
+            );
+
+
+            formData.append(
+                "longitude",
+                longitude
+            );
+
+
+            formData.append(
+                "complaint_type",
+                complaintType
+            );
+
+
+            formData.append(
+                "description",
+                description
+            );
+
+
+            submitBtn.disabled =
+                true;
+
+
+            submitBtn.innerText =
+                "Submitting...";
+
+
+            fetch(
+                "/complaints",
+                {
+
+                    method: "POST",
+
+                    body: formData
+
+                }
+            )
+
+            .then(async response => {
+
+                const text =
+                    await response.text();
+
+
+                let data;
+
+
+                try {
+
+                    data =
+                        JSON.parse(text);
+
+                }
+
+                catch {
+
+                    data = {
+                        detail: text
+                    };
+
+                }
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Failed to submit complaint"
+                    );
+
+                }
+
+
+                return data;
+
+            })
+
+            .then(data => {
+
+                alert(
+                    "✅ Complaint submitted successfully!"
+                );
+
+
+                form.reset();
+
+
+                userLatitude = null;
+
+                userLongitude = null;
+
+
+                document.getElementById(
+                    "latitude"
+                ).value = "";
+
+
+                document.getElementById(
+                    "longitude"
+                ).value = "";
+
+
+                document.getElementById(
+                    "nearestBinBox"
+                ).style.display =
+                    "none";
+
+
+                document.getElementById(
+                    "locationMessage"
+                ).innerText =
+                    "Enter the complaint location manually, or use GPS if you are currently there.";
+
+
+                document.getElementById(
+                    "locationBtn"
+                ).innerText =
+                    "📍 Use My Location";
+
+
+                loadComplaints();
+
+            })
+
+            .catch(error => {
+
+                console.error(
+                    "Submit complaint error:",
+                    error
+                );
+
+
+                alert(
+                    "❌ " + error.message
+                );
+
+            })
+
+            .finally(() => {
+
+                submitBtn.disabled =
+                    false;
+
+
+                submitBtn.innerText =
+                    "Submit Complaint";
+
+            });
+
+        }
+    );
+
+
+/* =========================================================
+   LOAD COMPLAINTS
+========================================================= */
+
+function loadComplaints() {
+
+    fetch("/complaints")
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load complaints"
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            const table =
+                document.getElementById(
+                    "complaintTable"
+                );
+
+
+            if (
+                !Array.isArray(data)
+            ) {
+
+                table.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            style="text-align:center;color:red;"
+                        >
+
+                            Invalid complaint data.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                return;
+
+            }
+
+
+            if (data.length === 0) {
+
+                table.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            style="text-align:center;"
+                        >
+
+                            No complaints submitted yet.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                return;
+
+            }
+
+
+            let tableHTML = "";
+
+
+            data.forEach(c => {
+
+                const status =
+                    String(
+                        c.status || "Pending"
+                    ).toUpperCase();
+
+
+                let statusClass =
+                    "pending";
+
+
+                if (
+                    status === "COLLECTED" ||
+                    status === "KEPT"
+                ) {
+
+                    statusClass =
+                        "resolved";
+
+                }
+
+                else if (
+                    status === "IN PROGRESS"
+                ) {
+
+                    statusClass =
+                        "progress";
+
+                }
+
+
+                let actionButton = "";
+
+
+                /* =================================================
+                   PENDING / IN PROGRESS
+                ================================================= */
+
+                if (
+                    status !== "COLLECTED" &&
+                    status !== "KEPT"
+                ) {
+
+                    actionButton = `
+
+                        <button
+                            type="button"
+                            class="complaint-submit-btn"
+                            onclick="markCollected(${c.id})"
+                        >
+
+                            ✓ Mark Collected
+
+                        </button>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   COLLECTED
+                ================================================= */
+
+                else if (
+                    status === "COLLECTED"
+                ) {
+
+                    actionButton = `
+
+                        <div
+                            style="
+                                display:flex;
+                                gap:6px;
+                                flex-wrap:wrap;
+                            "
+                        >
+
+                            <button
+                                type="button"
+                                class="complaint-submit-btn"
+                                onclick="keepComplaint(${c.id})"
+                            >
+
+                                📌 Keep
+
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="complaint-submit-btn"
+                                onclick="deleteComplaint(${c.id})"
+                                style="background:#dc3545;"
+                            >
+
+                                🗑️ Delete
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   KEPT
+                ================================================= */
+
+                else if (
+                    status === "KEPT"
+                ) {
+
+                    actionButton = `
+
+                        <div>
+
+                            <span
+                                style="
+                                    display:block;
+                                    margin-bottom:6px;
+                                "
+                            >
+
+                                📌 Kept in History
+
+                            </span>
+
+
+                            <button
+                                type="button"
+                                class="complaint-submit-btn"
+                                onclick="deleteComplaint(${c.id})"
+                                style="background:#dc3545;"
+                            >
+
+                                🗑️ Delete
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+
+
+                tableHTML += `
+
+                    <tr>
+
+                        <td>
+                            ${c.id}
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${c.name || ""}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+                            ${c.location || ""}
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                c.bin_code ||
+                                "Not assigned"
+                            }
+
+                        </td>
+
+
+                        <td>
+                            ${c.complaint_type || ""}
+                        </td>
+
+
+                        <td class="description-cell">
+
+                            ${c.description || ""}
+
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="complaint-status ${statusClass}"
+                            >
+
+                                ${c.status || "Pending"}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            ${actionButton}
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            });
+
+
+            table.innerHTML =
+                tableHTML;
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Load complaints error:",
+                error
+            );
+
+
+            document.getElementById(
+                "complaintTable"
+            ).innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        style="text-align:center;color:red;"
+                    >
+
+                        Unable to load complaint data.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+}
+
+
+/* =========================================================
+   MARK COLLECTED
+========================================================= */
+
+function markCollected(
+    complaintId
+) {
+
+    const confirmed =
+        confirm(
+            "Are you sure this complaint has been completed?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/complaints/${complaintId}/collect`,
+        {
+
+            method: "PUT"
+
+        }
+    )
+
+    .then(async response => {
+
+        const text =
+            await response.text();
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(text);
+
+        }
+
+        catch {
+
+            data = {
+                detail: text
+            };
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Failed to update complaint"
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        alert(
+            "✅ Complaint marked as completed."
+        );
+
+
+        loadComplaints();
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+
+        alert(
+            "❌ " + error.message
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   KEEP COMPLAINT
+========================================================= */
+
+function keepComplaint(
+    complaintId
+) {
+
+    const confirmed =
+        confirm(
+            "Keep this completed complaint in history?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/complaints/${complaintId}/keep`,
+        {
+
+            method: "PUT"
+
+        }
+    )
+
+    .then(async response => {
+
+        const text =
+            await response.text();
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(text);
+
+        }
+
+        catch {
+
+            data = {
+                detail: text
+            };
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Unable to keep complaint"
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        alert(
+            "📌 Complaint kept in history."
+        );
+
+
+        loadComplaints();
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Keep complaint error:",
+            error
+        );
+
+
+        alert(
+            "❌ " + error.message
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   DELETE COMPLAINT
+========================================================= */
+
+function deleteComplaint(
+    complaintId
+) {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to permanently delete this completed complaint?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/complaints/${complaintId}`,
+        {
+
+            method: "DELETE"
+
+        }
+    )
+
+    .then(async response => {
+
+        const text =
+            await response.text();
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(text);
+
+        }
+
+        catch {
+
+            data = {
+                detail: text
+            };
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Unable to delete complaint"
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        alert(
+            "🗑️ Complaint deleted successfully."
+        );
+
+
+        loadComplaints();
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Delete complaint error:",
+            error
+        );
+
+
+        alert(
+            "❌ " + error.message
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   INITIAL LOAD
+========================================================= */
 
 loadComplaints();
 
 </script>
 
 {% endblock %}
-

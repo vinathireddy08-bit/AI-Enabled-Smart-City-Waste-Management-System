@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, String, Float
-
+from sqlalchemy import Column, Integer, String, Float, DateTime
 from database import Base
 
+
+# =========================================================
+# WASTE BIN MODEL
+# =========================================================
 
 class WasteBin(Base):
 
@@ -45,6 +48,10 @@ class WasteBin(Base):
     )
 
 
+# =========================================================
+# COMPLAINT MODEL
+# =========================================================
+
 class Complaint(Base):
 
     __tablename__ = "complaints"
@@ -65,6 +72,29 @@ class Complaint(Base):
         nullable=False
     )
 
+    # =====================================================
+    # GPS LOCATION
+    # =====================================================
+
+    latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    # =====================================================
+    # ASSOCIATED WASTE BIN
+    # =====================================================
+
+    bin_id = Column(
+        Integer,
+        nullable=True
+    )
+
     complaint_type = Column(
         String,
         nullable=False
@@ -75,7 +105,20 @@ class Complaint(Base):
         nullable=False
     )
 
+    # =====================================================
+    # COMPLAINT STATUS
+    # =====================================================
+
     status = Column(
         String,
         default="Pending"
+    )
+
+    # =====================================================
+    # COLLECTION TIME
+    # =====================================================
+
+    collection_time = Column(
+        DateTime,
+        nullable=True
     )

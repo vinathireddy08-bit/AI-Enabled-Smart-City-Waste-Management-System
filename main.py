@@ -5,6 +5,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
+from datetime import datetime
+from math import radians, sin, cos, sqrt, atan2
+
 from database import engine, SessionLocal
 from models import Base, WasteBin, Complaint
 
@@ -59,6 +62,7 @@ try:
         ]
 
         db.add_all(bins)
+
         db.commit()
 
 finally:
@@ -135,7 +139,59 @@ def get_bins(
     db: Session = Depends(get_db)
 ):
 
-    return db.query(WasteBin).all()
+    bins = db.query(WasteBin).all()
+
+    result = []
+
+    for bin in bins:
+
+        # Only ACTIVE complaints should be associated
+        # with the bin.
+        active_complaint = db.query(Complaint).filter(
+            Complaint.bin_id == bin.id,
+            Complaint.status.notin_([
+                "COLLECTED",
+                "KEPT"
+            ])
+        ).first()
+
+        result.append({
+
+            "id": bin.id,
+
+            "bin_code": bin.bin_code,
+
+            "location": bin.location,
+
+            "latitude": bin.latitude,
+
+            "longitude": bin.longitude,
+
+            "fill_level": bin.fill_level,
+
+            "status": bin.status,
+
+            "complaint_raised": (
+                True
+                if active_complaint
+                else False
+            ),
+
+            "complaint_id": (
+                active_complaint.id
+                if active_complaint
+                else None
+            ),
+
+            "complaint_type": (
+                active_complaint.complaint_type
+                if active_complaint
+                else None
+            )
+
+        })
+
+    return result
 
 
 # =========================================================
@@ -193,9 +249,7 @@ def create_bin(
 
 ):
 
-    # =====================================================
-    # CHECK WHETHER BIN CODE ALREADY EXISTS
-    # =====================================================
+    # CHECK DUPLICATE BIN CODE
 
     existing_bin = db.query(WasteBin).filter(
         WasteBin.bin_code == bin_code
@@ -209,9 +263,7 @@ def create_bin(
         )
 
 
-    # =====================================================
     # VALIDATE FILL LEVEL
-    # =====================================================
 
     if fill_level < 0 or fill_level > 100:
 
@@ -221,9 +273,7 @@ def create_bin(
         )
 
 
-    # =====================================================
-    # AUTOMATICALLY DETERMINE STATUS
-    # =====================================================
+    # AUTOMATIC STATUS
 
     if fill_level >= 80:
 
@@ -238,9 +288,7 @@ def create_bin(
         status = "EMPTY"
 
 
-    # =====================================================
-    # LOCATION → LATITUDE / LONGITUDE
-    # =====================================================
+    # LOCATION COORDINATES
 
     location_coordinates = {
 
@@ -272,16 +320,8 @@ def create_bin(
     }
 
 
-    # =====================================================
-    # CONVERT LOCATION TO LOWERCASE
-    # =====================================================
-
     location_key = location.strip().lower()
 
-
-    # =====================================================
-    # GET COORDINATES
-    # =====================================================
 
     if location_key in location_coordinates:
 
@@ -291,15 +331,11 @@ def create_bin(
 
     else:
 
-        # Default Hyderabad location
-
         latitude = 17.3850
         longitude = 78.4867
 
 
-    # =====================================================
-    # CREATE NEW BIN
-    # =====================================================
+    # CREATE BIN
 
     new_bin = WasteBin(
 
@@ -323,10 +359,6 @@ def create_bin(
 
     db.refresh(new_bin)
 
-
-    # =====================================================
-    # RETURN RESULT
-    # =====================================================
 
     return {
 
@@ -404,6 +436,7 @@ def update_existing_bin_locations(
 
         location_key = bin.location.strip().lower()
 
+
         if location_key in location_coordinates:
 
             latitude, longitude = location_coordinates[
@@ -413,6 +446,7 @@ def update_existing_bin_locations(
             bin.latitude = latitude
 
             bin.longitude = longitude
+
 
             updated.append({
 
@@ -586,17 +620,12 @@ def dashboard_data(
     if total_bins > 0:
 
         average_fill = round(
-
             total_fill / total_bins,
-
             2
-
         )
 
 
-    # =====================================================
     # HIGH FILL BINS
-    # =====================================================
 
     high_fill_bins = sorted(
 
@@ -633,6 +662,25 @@ def dashboard_data(
         )
 
 
+    # ACTIVE COMPLAINTS
+
+    active_complaints = db.query(Complaint).filter(
+
+        Complaint.status.notin_([
+            "COLLECTED",
+            "KEPT"
+        ])
+
+    ).count()
+
+
+    # TOTAL COMPLAINTS
+
+    total_complaints = db.query(
+        Complaint
+    ).count()
+
+
     return {
 
         "total_bins": total_bins,
@@ -649,7 +697,11 @@ def dashboard_data(
 
         "top_fill_levels": top_fill_levels,
 
-        "status": status_count
+        "status": status_count,
+
+        "active_complaints": active_complaints,
+
+        "total_complaints": total_complaints
 
     }
 
@@ -841,9 +893,77 @@ class ComplaintCreate(BaseModel):
 
     location: str
 
+    latitude: float
+
+    longitude: float
+
     complaint_type: str
 
     description: str
+
+
+# =========================================================
+# DISTANCE CALCULATION
+# =========================================================
+
+def calculate_distance(
+
+    lat1,
+
+    lon1,
+
+    lat2,
+
+    lon2
+
+):
+
+    R = 6371.0
+
+
+    lat1 = radians(lat1)
+
+    lon1 = radians(lon1)
+
+    lat2 = radians(lat2)
+
+    lon2 = radians(lon2)
+
+
+    dlat = lat2 - lat1
+
+    dlon = lon2 - lon1
+
+
+    a = (
+
+        sin(dlat / 2) ** 2
+
+        +
+
+        cos(lat1)
+
+        *
+
+        cos(lat2)
+
+        *
+
+        sin(dlon / 2) ** 2
+
+    )
+
+
+    c = 2 * atan2(
+
+        sqrt(a),
+
+        sqrt(1 - a)
+
+    )
+
+
+    return R * c
 
 
 # =========================================================
@@ -857,6 +977,10 @@ def create_complaint(
 
     location: str = Form(...),
 
+    latitude: float = Form(...),
+
+    longitude: float = Form(...),
+
     complaint_type: str = Form(...),
 
     description: str = Form(...),
@@ -865,11 +989,62 @@ def create_complaint(
 
 ):
 
+    bins = db.query(WasteBin).all()
+
+
+    if not bins:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="No waste bins available"
+
+        )
+
+
+    # FIND NEAREST BIN
+
+    nearest_bin = None
+
+    shortest_distance = float("inf")
+
+
+    for bin in bins:
+
+        distance = calculate_distance(
+
+            latitude,
+
+            longitude,
+
+            bin.latitude,
+
+            bin.longitude
+
+        )
+
+
+        if distance < shortest_distance:
+
+            shortest_distance = distance
+
+            nearest_bin = bin
+
+
+    # CREATE COMPLAINT
+
     complaint = Complaint(
 
         name=name,
 
         location=location,
+
+        latitude=latitude,
+
+        longitude=longitude,
+
+        bin_id=nearest_bin.id,
 
         complaint_type=complaint_type,
 
@@ -889,7 +1064,32 @@ def create_complaint(
 
     return {
 
-        "message": "Complaint submitted successfully"
+        "message": "Complaint submitted successfully",
+
+        "complaint_id": complaint.id,
+
+        "location": complaint.location,
+
+        "latitude": complaint.latitude,
+
+        "longitude": complaint.longitude,
+
+        "nearest_bin": {
+
+            "id": nearest_bin.id,
+
+            "bin_code": nearest_bin.bin_code,
+
+            "location": nearest_bin.location,
+
+            "distance_km": round(
+                shortest_distance,
+                3
+            )
+
+        },
+
+        "status": complaint.status
 
     }
 
@@ -905,4 +1105,330 @@ def get_complaints(
 
 ):
 
-    return db.query(Complaint).all()
+    complaints = db.query(Complaint).order_by(
+
+        Complaint.id.desc()
+
+    ).all()
+
+
+    result = []
+
+
+    for complaint in complaints:
+
+        bin_data = None
+
+
+        if complaint.bin_id:
+
+            bin_data = db.query(WasteBin).filter(
+
+                WasteBin.id == complaint.bin_id
+
+            ).first()
+
+
+        result.append({
+
+            "id": complaint.id,
+
+            "name": complaint.name,
+
+            "location": complaint.location,
+
+            "latitude": complaint.latitude,
+
+            "longitude": complaint.longitude,
+
+            "bin_id": complaint.bin_id,
+
+            "bin_code": (
+
+                bin_data.bin_code
+
+                if bin_data
+
+                else None
+
+            ),
+
+            "complaint_type": complaint.complaint_type,
+
+            "description": complaint.description,
+
+            "status": complaint.status,
+
+            "collection_time": (
+
+                complaint.collection_time.isoformat()
+
+                if complaint.collection_time
+
+                else None
+
+            )
+
+        })
+
+
+    return result
+
+
+# =========================================================
+# MARK COMPLAINT AS COLLECTED
+# =========================================================
+
+@app.put("/complaints/{complaint_id}/collect")
+def collect_complaint(
+
+    complaint_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    complaint = db.query(Complaint).filter(
+
+        Complaint.id == complaint_id
+
+    ).first()
+
+
+    if complaint is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Complaint not found"
+
+        )
+
+
+    # PREVENT RE-COLLECTION
+
+    if complaint.status in [
+        "COLLECTED",
+        "KEPT"
+    ]:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Complaint is already completed"
+
+        )
+
+
+    # FIND ASSOCIATED BIN
+
+    bin_data = None
+
+
+    if complaint.bin_id:
+
+        bin_data = db.query(WasteBin).filter(
+
+            WasteBin.id == complaint.bin_id
+
+        ).first()
+
+
+    # UPDATE COMPLAINT
+
+    complaint.status = "COLLECTED"
+
+    complaint.collection_time = datetime.now()
+
+
+    # EMPTY ASSOCIATED BIN
+
+    if bin_data:
+
+        bin_data.fill_level = 0
+
+        bin_data.status = "EMPTY"
+
+
+    db.commit()
+
+    db.refresh(complaint)
+
+
+    return {
+
+        "message": "Complaint marked as collected",
+
+        "complaint_id": complaint.id,
+
+        "status": complaint.status,
+
+        "collection_time": (
+
+            complaint.collection_time.isoformat()
+
+        ),
+
+        "bin": {
+
+            "bin_code": (
+
+                bin_data.bin_code
+
+                if bin_data
+
+                else None
+
+            ),
+
+            "fill_level": (
+
+                bin_data.fill_level
+
+                if bin_data
+
+                else None
+
+            ),
+
+            "status": (
+
+                bin_data.status
+
+                if bin_data
+
+                else None
+
+            )
+
+        }
+
+    }
+
+
+# =========================================================
+# KEEP COMPLETED COMPLAINT
+# =========================================================
+
+@app.put("/complaints/{complaint_id}/keep")
+def keep_complaint(
+
+    complaint_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    complaint = db.query(Complaint).filter(
+
+        Complaint.id == complaint_id
+
+    ).first()
+
+
+    if complaint is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Complaint not found"
+
+        )
+
+
+    # Only completed complaints can be kept
+
+    if complaint.status != "COLLECTED":
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Only completed complaints can be kept"
+
+        )
+
+
+    # KEPT means preserve it in history
+
+    complaint.status = "KEPT"
+
+
+    db.commit()
+
+    db.refresh(complaint)
+
+
+    return {
+
+        "message": "Complaint kept in history",
+
+        "complaint_id": complaint.id,
+
+        "status": complaint.status
+
+    }
+
+
+# =========================================================
+# DELETE COMPLETED COMPLAINT
+# =========================================================
+
+@app.delete("/complaints/{complaint_id}")
+def delete_complaint(
+
+    complaint_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    complaint = db.query(Complaint).filter(
+
+        Complaint.id == complaint_id
+
+    ).first()
+
+
+    if complaint is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Complaint not found"
+
+        )
+
+
+    # Only completed complaints can be deleted
+
+    if complaint.status not in [
+        "COLLECTED",
+        "KEPT"
+    ]:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Only completed complaints can be deleted"
+
+        )
+
+
+    db.delete(complaint)
+
+    db.commit()
+
+
+    return {
+
+        "message": "Complaint deleted successfully",
+
+        "complaint_id": complaint_id
+
+    }
